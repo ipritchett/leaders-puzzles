@@ -228,15 +228,33 @@ export class Game {
     // Check all leaders for victory conditions
     const leaders = this.pieces.filter(p => p.isLeader);
 
+    if (leaders.length === 0) {
+      console.warn('No leaders found on the board');
+      return;
+    }
+
+    console.log(`Checking victory conditions for ${leaders.length} leader(s)`);
+
     for (const leader of leaders) {
-      // Only Leader class instances have checkVictoryCondition method
-      if (leader instanceof Leader) {
-        const winner = leader.checkVictoryCondition(this.board);
-        if (winner) {
-          this.gameOver = true;
-          this.winner = winner;
-          return;
+      // Check if this piece has the checkVictoryCondition method (more reliable than instanceof)
+      const hasMethod = typeof (leader as any).checkVictoryCondition === 'function';
+      const isLeaderInstance = leader instanceof Leader;
+      
+      if (hasMethod || isLeaderInstance) {
+        try {
+          const winner = (leader as Leader).checkVictoryCondition(this.board);
+          if (winner) {
+            this.gameOver = true;
+            this.winner = winner;
+            console.log(`Victory condition triggered! ${winner} wins. Leader ${leader.id} (${leader.color}) is captured or surrounded.`);
+            return;
+          }
+        } catch (error) {
+          console.error(`Error checking victory condition for leader ${leader.id}:`, error);
         }
+      } else {
+        // If piece has isLeader but isn't a Leader instance, log a warning
+        console.warn(`Piece ${leader.id} is marked as leader but has no checkVictoryCondition method. Type: ${leader.constructor.name}, instanceof Leader: ${isLeaderInstance}`);
       }
     }
   }

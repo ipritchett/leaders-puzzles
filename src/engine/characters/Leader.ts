@@ -1,4 +1,5 @@
-import type { AxialCoord, PlayerColor } from '../types.js';
+import type { AxialCoord } from '../types.js';
+import { PlayerColor } from '../types.js';
 import { Piece } from '../Piece.js';
 import type { Board } from '../Board.js';
 
@@ -46,9 +47,14 @@ export class Leader extends Piece {
    * Returns the winning color if this leader is captured or surrounded, null otherwise
    */
   checkVictoryCondition(board: Board): PlayerColor | null {
-    if (this.isCaptured(board) || this.isSurrounded(board)) {
+    const captured = this.isCaptured(board);
+    const surrounded = this.isSurrounded(board);
+    
+    if (captured || surrounded) {
       // If this leader is captured/surrounded, the opposing team wins
-      return this.color === PlayerColor.White ? PlayerColor.Black : PlayerColor.White;
+      const winner = this.color === PlayerColor.White ? PlayerColor.Black : PlayerColor.White;
+      console.log(`Leader ${this.id} (${this.color}) victory check: captured=${captured}, surrounded=${surrounded}, winner=${winner}`);
+      return winner;
     }
     return null;
   }
