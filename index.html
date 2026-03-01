@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaders</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div id="app">
+    <div id="notationPanel">
+      <div id="notationDisplay">
+        <label for="notationInput">Board Notation:</label>
+        <div id="currentNotation"></div>
+      </div>
+      <div id="notationInput">
+        <input type="text" id="notationTextInput" placeholder="Paste notation here (e.g., White: {L:D1, B:E1}; Black: {L:D7, B:E7})">
+        <button id="resetBoardBtn">Reset Board</button>
+      </div>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+    <div id="ui">
+      <div id="turnIndicator"></div>
+      <div id="actionButtons" class="hidden">
+        <button id="moveBtn">Move</button>
+        <button id="useAbilityBtn" disabled>Use Ability</button>
+      </div>
+      <button id="endTurnBtn">End Turn</button>
+    </div>
+    <div id="victoryOverlay" class="hidden">
+      <div id="victoryMessage"></div>
+      <button id="startOverBtn">Start Over</button>
+    </div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

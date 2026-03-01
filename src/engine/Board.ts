@@ -1,0 +1,86 @@
+import type { AxialCoord } from './types.js';
+import type { Piece } from './Piece.js';
+
+export class Board {
+  private validCells: Set<string>;
+  private occupancy: Map<string, Piece>;
+
+  constructor() {
+    this.validCells = new Set();
+    this.occupancy = new Map();
+
+    // Generate all valid cells: |q| <= 3, |r| <= 3, |q + r| <= 3
+    for (let q = -3; q <= 3; q++) {
+      for (let r = -3; r <= 3; r++) {
+        if (Math.abs(q + r) <= 3) {
+          this.validCells.add(this.coordToString({ q, r }));
+        }
+      }
+    }
+  }
+
+  private coordToString(coord: AxialCoord): string {
+    return `${coord.q},${coord.r}`;
+  }
+
+  private stringToCoord(str: string): AxialCoord {
+    const [q, r] = str.split(',').map(Number);
+    return { q, r };
+  }
+
+  isValidCell(coord: AxialCoord): boolean {
+    return this.validCells.has(this.coordToString(coord));
+  }
+
+  getAllValidCells(): AxialCoord[] {
+    return Array.from(this.validCells).map(str => this.stringToCoord(str));
+  }
+
+  getNeighbors(coord: AxialCoord): AxialCoord[] {
+    const neighbors: AxialCoord[] = [
+      { q: coord.q + 1, r: coord.r },
+      { q: coord.q - 1, r: coord.r },
+      { q: coord.q, r: coord.r + 1 },
+      { q: coord.q, r: coord.r - 1 },
+      { q: coord.q + 1, r: coord.r - 1 },
+      { q: coord.q - 1, r: coord.r + 1 }
+    ];
+
+    return neighbors.filter(n => this.isValidCell(n));
+  }
+
+  isOccupied(coord: AxialCoord): boolean {
+    return this.occupancy.has(this.coordToString(coord));
+  }
+
+  getPieceAt(coord: AxialCoord): Piece | null {
+    const key = this.coordToString(coord);
+    return this.occupancy.get(key) || null;
+  }
+
+  placePiece(piece: Piece, coord: AxialCoord): void {
+    if (!this.isValidCell(coord)) {
+      throw new Error(`Invalid cell: ${coord.q}, ${coord.r}`);
+    }
+    if (this.isOccupied(coord)) {
+      throw new Error(`Cell already occupied: ${coord.q}, ${coord.r}`);
+    }
+    this.occupancy.set(this.coordToString(coord), piece);
+  }
+
+  movePiece(from: AxialCoord, to: AxialCoord): void {
+    const piece = this.getPieceAt(from);
+    if (!piece) {
+      throw new Error(`No piece at source: ${from.q}, ${from.r}`);
+    }
+    if (this.isOccupied(to)) {
+      throw new Error(`Target cell occupied: ${to.q}, ${to.r}`);
+    }
+    this.occupancy.delete(this.coordToString(from));
+    this.occupancy.set(this.coordToString(to), piece);
+  }
+
+  removePiece(coord: AxialCoord): void {
+    this.occupancy.delete(this.coordToString(coord));
+  }
+}
