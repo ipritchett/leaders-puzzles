@@ -19,7 +19,8 @@ import { Assassin } from './characters/Assassin.js';
 import { Protector } from './characters/Protector.js';
 import { Vizier } from './characters/Vizier.js';
 import { Nemesis } from './characters/Nemesis.js';
-import { HermitAndCub } from './characters/HermitAndCub.js';
+import { Hermit } from './characters/Hermit.js';
+import { Cub } from './characters/Cub.js';
 
 export type PiecePlacement = {
   acronym: string;
@@ -42,6 +43,7 @@ export type NotationParseResult = {
 const acronymToClass: Map<string, new (id: string, color: PlayerColor, position: any) => Piece> = new Map([
   ['L', Leader],
   ['Ac', Acrobat],
+  ['Ar', Archer],
   ['CL', ClawLauncher],
   ['R', Rider],
   ['B', Bruiser],
@@ -55,7 +57,8 @@ const acronymToClass: Map<string, new (id: string, color: PlayerColor, position:
   ['P', Protector],
   ['V', Vizier],
   ['N', Nemesis],
-  ['HC', HermitAndCub],
+  ['H', Hermit],
+  ['C', Cub],
 ]);
 
 export class NotationParser {

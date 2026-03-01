@@ -10,6 +10,10 @@ export class ClawLauncher extends Piece {
     return 'CL';
   }
 
+  getEmoji(): string {
+    return '🪝';
+  }
+
   useAbility(target?: AxialCoord): boolean {
     // Not implemented yet
     return false;

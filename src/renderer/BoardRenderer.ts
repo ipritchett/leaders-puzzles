@@ -3,10 +3,14 @@ import { PlayerColor } from '../engine/types.js';
 import type { Game } from '../engine/Game.js';
 import type { Piece } from '../engine/Piece.js';
 
+const CELL_RADIUS_FACTOR = 0.42;
+const PIECE_RADIUS_FACTOR = 0.95;
+
 export class BoardRenderer {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private hexSize!: number;
+  private cellRadius!: number;
   private centerX!: number;
   private centerY!: number;
   private dimensionsInitialized: boolean = false;
@@ -37,6 +41,7 @@ export class BoardRenderer {
       
       // Use the smaller to ensure everything fits
       this.hexSize = Math.min(hexSizeFromHeight, hexSizeFromWidth);
+      this.cellRadius = this.hexSize * CELL_RADIUS_FACTOR;
       
       // Calculate actual bounds of all cells using temporary center
       // We'll calculate relative to (0,0) first, then adjust
@@ -55,12 +60,11 @@ export class BoardRenderer {
       }
       
       // Calculate board dimensions (including cell radius for accurate bounds)
-      const cellRadius = this.hexSize * 0.42;
-      const boardWidth = (maxX - minX) + cellRadius * 2;
-      const boardHeight = (maxY - minY) + cellRadius * 2;
+      const boardWidth = (maxX - minX) + this.cellRadius * 2;
+      const boardHeight = (maxY - minY) + this.cellRadius * 2;
       
       // Add padding for border and extra space (more generous padding)
-      const padding = Math.max(cellRadius * 1.5, this.hexSize * 2);
+      const padding = Math.max(this.cellRadius * 1.5, this.hexSize * 2);
       
       // Calculate required canvas size
       const requiredWidth = boardWidth + padding * 2;
@@ -230,10 +234,9 @@ export class BoardRenderer {
 
   private drawCell(coord: AxialCoord, isHighlighted: boolean): void {
     const { x, y } = this.axialToPixel(coord);
-    const cellRadius = this.hexSize * 0.42;
 
     // Draw cell with gradient for depth
-    const gradient = this.ctx.createRadialGradient(x, y - 3, 0, x, y, cellRadius);
+    const gradient = this.ctx.createRadialGradient(x, y - 3, 0, x, y, this.cellRadius);
     if (isHighlighted) {
       gradient.addColorStop(0, '#b8e5b8');
       gradient.addColorStop(1, '#90c890');
@@ -245,7 +248,7 @@ export class BoardRenderer {
     
     this.ctx.fillStyle = gradient;
     this.ctx.beginPath();
-    this.ctx.arc(x, y, cellRadius, 0, Math.PI * 2);
+    this.ctx.arc(x, y, this.cellRadius, 0, Math.PI * 2);
     this.ctx.fill();
 
     // Draw subtle border
@@ -258,14 +261,20 @@ export class BoardRenderer {
     this.ctx.globalAlpha = 0.15;
     this.ctx.fillStyle = '#000000';
     this.ctx.beginPath();
-    this.ctx.arc(x, y - 2, cellRadius * 0.85, 0, Math.PI * 2);
+    this.ctx.arc(x, y - 2, this.cellRadius * 0.85, 0, Math.PI * 2);
     this.ctx.fill();
     this.ctx.restore();
   }
 
-  private drawPiece(piece: Piece, isSelected: boolean, hasMoved: boolean, isCurrentPlayer: boolean): void {
-    const { x, y } = this.axialToPixel(piece.position);
-    const pieceRadius = this.hexSize * 0.32;
+  private drawPiece(
+    piece: Piece,
+    isSelected: boolean,
+    hasMoved: boolean,
+    isCurrentPlayer: boolean,
+    pixelOverride?: { x: number; y: number }
+  ): void {
+    const { x, y } = pixelOverride ?? this.axialToPixel(piece.position);
+    const pieceRadius = this.cellRadius * PIECE_RADIUS_FACTOR;
 
     // Determine opacity and visual state based on move status
     let opacity = 1.0;
@@ -320,15 +329,6 @@ export class BoardRenderer {
 
     this.ctx.restore();
 
-    // Add shadow below piece
-    this.ctx.save();
-    this.ctx.globalAlpha = 0.3 * opacity;
-    this.ctx.fillStyle = '#000000';
-    this.ctx.beginPath();
-    this.ctx.ellipse(x, y + 2, pieceRadius * 0.8, pieceRadius * 0.4, 0, 0, Math.PI * 2);
-    this.ctx.fill();
-    this.ctx.restore();
-
     // Draw selection ring with glow effect
     if (isSelected) {
       this.ctx.save();
@@ -358,36 +358,11 @@ export class BoardRenderer {
       this.ctx.restore();
     }
 
-    // Draw crown for leader
-    if (piece.isLeader) {
-      this.ctx.save();
-      this.ctx.globalAlpha = opacity;
-      this.ctx.fillStyle = '#d4af37';
-      this.ctx.strokeStyle = '#b8941f';
-      this.ctx.lineWidth = 1.5;
-      
-      const crownY = y - pieceRadius * 0.6;
-      const crownWidth = pieceRadius * 0.6;
-      const crownHeight = pieceRadius * 0.4;
-      
-      // Draw simple crown shape (3 peaks)
-      this.ctx.beginPath();
-      this.ctx.moveTo(x - crownWidth / 2, crownY);
-      this.ctx.lineTo(x - crownWidth / 3, crownY - crownHeight);
-      this.ctx.lineTo(x, crownY - crownHeight * 0.7);
-      this.ctx.lineTo(x + crownWidth / 3, crownY - crownHeight);
-      this.ctx.lineTo(x + crownWidth / 2, crownY);
-      this.ctx.closePath();
-      this.ctx.fill();
-      this.ctx.stroke();
-      this.ctx.restore();
-    }
-
-    // Draw acronym letter on piece
+    // Draw emoji on piece
     this.ctx.save();
     this.ctx.globalAlpha = opacity;
-    const acronym = piece.getAcronym();
-    const fontSize = pieceRadius * 0.8;
+    const emoji = piece.getEmoji();
+    const fontSize = pieceRadius;
     this.ctx.font = `bold ${fontSize}px Arial, sans-serif`;
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
@@ -399,7 +374,7 @@ export class BoardRenderer {
     this.ctx.shadowColor = piece.color === PlayerColor.White ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
     this.ctx.shadowBlur = 2;
     
-    this.ctx.fillText(acronym, x, y);
+    this.ctx.fillText(emoji, x, y);
     this.ctx.restore();
   }
 
@@ -408,6 +383,8 @@ export class BoardRenderer {
   }
 
   render(game: Game): void {
+    const uiState = game.getUIState();
+
     // Update dimensions on first render or when window resizes
     // This ensures we have game data to calculate proper bounds
     if (!this.dimensionsInitialized) {
@@ -421,7 +398,7 @@ export class BoardRenderer {
 
     // Calculate board bounds to ensure all cells are within the border
     const borderSize = this.calculateBoardBounds(game);
-    const boardBgSize = borderSize - this.hexSize * 0.2; // Slightly smaller than border
+    const boardBgSize = borderSize + this.hexSize * 0.5; // Slightly smaller than border
 
     // Draw board background (cream/parchment area) with subtle gradient
     const bgGradient = this.ctx.createRadialGradient(
@@ -448,7 +425,7 @@ export class BoardRenderer {
     this.ctx.fill();
 
     // Draw board outline
-    this.drawBoardOutline(borderSize);
+    this.drawBoardOutline(boardBgSize+this.hexSize*0.2);
 
     // Get selected piece and valid moves
     const selectedPiece = game.getSelectedPiece();
@@ -463,12 +440,29 @@ export class BoardRenderer {
       this.drawCell(cell, isHighlighted);
     }
 
-    // Draw pieces
+    // Draw pieces (skip the piece being dragged at its cell; it's drawn at cursor below)
+    const draggedPieceId = uiState.heldPiece?.id ?? null;
     for (const piece of game.pieces) {
+      if (piece.id === draggedPieceId) {
+        continue;
+      }
       const isSelected = selectedPiece?.id === piece.id;
       const hasMoved = game.hasMovedThisTurn(piece.id);
       const isCurrentPlayer = piece.color === game.currentTurn;
       this.drawPiece(piece, isSelected, hasMoved, isCurrentPlayer);
+    }
+
+    // Draw dragged piece centered at cursor
+    if (uiState.heldPiece) {
+      const hasMoved = game.hasMovedThisTurn(uiState.heldPiece.id);
+      const isCurrentPlayer = uiState.heldPiece.color === game.currentTurn;
+      this.drawPiece(
+        uiState.heldPiece,
+        false,
+        hasMoved,
+        isCurrentPlayer,
+        { x: uiState.cursorPixelX, y: uiState.cursorPixelY }
+      );
     }
   }
 

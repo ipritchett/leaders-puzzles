@@ -18,7 +18,8 @@ import { Assassin } from './characters/Assassin.js';
 import { Protector } from './characters/Protector.js';
 import { Vizier } from './characters/Vizier.js';
 import { Nemesis } from './characters/Nemesis.js';
-import { HermitAndCub } from './characters/HermitAndCub.js';
+import { Hermit } from './characters/Hermit.js';
+import { Cub } from './characters/Cub.js';
 import { NotationParser } from './NotationParser.js';
 import { CoordinateMapper } from './CoordinateMapper.js';
 
@@ -39,14 +40,43 @@ const nonLeaderClasses = [
   Protector,
   Vizier,
   Nemesis,
-  HermitAndCub,
+  Hermit,
+  Cub,
 ];
+
+// TODO: Move this to its own class
+export class UIState {
+  selectedPiece: Piece | null = null;
+  heldPiece: Piece | null = null;
+  cursorPixelX: number = 0;
+  cursorPixelY: number = 0;
+
+  clear(): void {
+    this.selectedPiece = null;
+    this.heldPiece = null;
+  }
+
+  setSelectedPiece(piece: Piece): void {
+    this.selectedPiece = piece;
+  }
+
+  setHeldPiece(piece: Piece): void {
+    this.heldPiece = piece;
+  }
+  
+  setCursorPosition(pixelX: number, pixelY: number): void {
+    this.cursorPixelX = pixelX;
+    this.cursorPixelY = pixelY;
+  }
+
+}
+ 
 
 export class Game {
   public readonly board: Board;
   public currentTurn: PlayerColor;
-  private movedPieces: Set<string>;
-  private selectedPiece: Piece | null;
+  private movedPieces: Set<string>; // SUGGESTION: Revert this (track pieces with an action). Will make implementing Nemesis and H+C easier.
+  private uiState: UIState;
   public readonly pieces: Piece[];
   public gameOver: boolean;
   public winner: PlayerColor | null;
@@ -55,7 +85,7 @@ export class Game {
     this.board = new Board();
     this.currentTurn = PlayerColor.Black; // Start with Black's turn
     this.movedPieces = new Set();
-    this.selectedPiece = null;
+    this.uiState = new UIState();
     this.pieces = [];
     this.gameOver = false;
     this.winner = null;
@@ -137,39 +167,62 @@ export class Game {
     const piece = this.board.getPieceAt(coord);
     
     if (!piece) {
-      this.selectedPiece = null;
+      this.uiState.clear();
       return false;
     }
 
     // Check if piece belongs to current player
     if (piece.color !== this.currentTurn) {
-      this.selectedPiece = null;
+      this.uiState.clear();
       return false;
     }
 
     // Check if piece has already moved this turn
     if (this.movedPieces.has(piece.id)) {
-      this.selectedPiece = null;
+      this.uiState.clear();
       return false;
     }
 
-    this.selectedPiece = piece;
+    this.uiState.setSelectedPiece(piece);
     return true;
   }
 
   getSelectedPiece(): Piece | null {
-    return this.selectedPiece;
+    return this.uiState.selectedPiece;
+  }
+
+  getUIState(): UIState {
+    return this.uiState;
+  }
+
+  /** Start dragging the selected piece at cursor position. Called by input. */
+  startDrag(piece: Piece, pixelX: number, pixelY: number): void {
+    if (this.uiState.selectedPiece?.id !== piece.id) {
+      return;
+    }
+    this.uiState.setHeldPiece(piece);
+    this.uiState.setCursorPosition(pixelX, pixelY);
+  }
+
+  /** Update cursor position during drag. */
+  updateDragPosition(pixelX: number, pixelY: number): void {
+    this.uiState.setCursorPosition(pixelX, pixelY);
+  }
+
+  /** End drag (drop or cancel). */
+  clearDrag(): void {
+    this.uiState.clear();
   }
 
   getValidMovesForSelected(): AxialCoord[] {
-    if (!this.selectedPiece) {
+    if (!this.uiState.selectedPiece) {
       return [];
     }
-    return this.selectedPiece.getValidMoves(this.board);
+    return this.uiState.selectedPiece.getValidMoves(this.board);
   }
 
   movePiece(target: AxialCoord): boolean {
-    if (!this.selectedPiece) {
+    if (!this.uiState.selectedPiece) {
       return false;
     }
 
@@ -182,11 +235,11 @@ export class Game {
       return false;
     }
 
-    const from = this.selectedPiece.position;
+    const from = this.uiState.selectedPiece.position;
     this.board.movePiece(from, target);
-    this.selectedPiece.position = target;
-    this.movedPieces.add(this.selectedPiece.id);
-    this.selectedPiece = null;
+    this.uiState.selectedPiece.position = target;
+    this.movedPieces.add(this.uiState.selectedPiece.id);
+    this.uiState.clear();
 
     // Check for victory conditions after move (don't let errors break the move)
     try {
@@ -199,20 +252,20 @@ export class Game {
   }
 
   useAbility(target?: AxialCoord): boolean {
-    if (!this.selectedPiece) {
+    if (!this.uiState.selectedPiece) {
       return false;
     }
 
     // Check if piece has already moved this turn
-    if (this.movedPieces.has(this.selectedPiece.id)) {
+    if (this.movedPieces.has(this.uiState.selectedPiece.id)) {
       return false;
     }
 
     // Use the piece's ability
-    const abilityUsed = this.selectedPiece.useAbility(target);
+    const abilityUsed = this.uiState.selectedPiece.useAbility(target);
     if (abilityUsed) {
-      this.movedPieces.add(this.selectedPiece.id);
-      this.selectedPiece = null;
+      this.movedPieces.add(this.uiState.selectedPiece.id);
+      this.uiState.clear();
       // Check for victory conditions after ability use (don't let errors break the ability)
       try {
         this.checkVictoryConditions();
@@ -264,7 +317,7 @@ export class Game {
       ? PlayerColor.Black 
       : PlayerColor.White;
     this.movedPieces.clear();
-    this.selectedPiece = null;
+    this.uiState.clear();
   }
 
   hasMovedThisTurn(pieceId: string): boolean {
@@ -379,7 +432,7 @@ export class Game {
     // Reset game state
     this.currentTurn = PlayerColor.Black; // Start with Black's turn
     this.movedPieces.clear();
-    this.selectedPiece = null;
+    this.uiState.clear();
     this.gameOver = false;
     this.winner = null;
 

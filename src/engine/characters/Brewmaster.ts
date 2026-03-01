@@ -10,6 +10,10 @@ export class Brewmaster extends Piece {
     return 'Bm';
   }
 
+  getEmoji(): string {
+    return '🍺';
+  }
+
   useAbility(target?: AxialCoord): boolean {
     // Not implemented yet
     return false;

@@ -1,17 +1,17 @@
 import type { AxialCoord, PlayerColor } from '../types.js';
 import { Piece } from '../Piece.js';
 
-export class RoyalGuard extends Piece {
+export class Hermit extends Piece {
   constructor(id: string, color: PlayerColor, position: AxialCoord) {
     super(id, color, position, false);
   }
 
   getAcronym(): string {
-    return 'RG';
+    return 'H';
   }
 
   getEmoji(): string {
-    return '🛡️'
+    return '🧔';
   }
 
   useAbility(target?: AxialCoord): boolean {
