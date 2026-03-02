@@ -10,6 +10,10 @@ export class Rider extends Piece {
     return 'R';
   }
 
+  getEmoji(): string {
+    return '🐴';
+  }
+
   useAbility(target?: AxialCoord): boolean {
     // Not implemented yet
     return false;

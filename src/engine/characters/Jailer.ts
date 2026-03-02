@@ -10,6 +10,10 @@ export class Jailer extends Piece {
     return 'J';
   }
 
+  getEmoji(): string {
+    return '🔗';
+  }
+
   useAbility(target?: AxialCoord): boolean {
     // Not implemented yet
     return false;

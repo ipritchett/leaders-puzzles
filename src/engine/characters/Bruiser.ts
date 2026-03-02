@@ -10,6 +10,10 @@ export class Bruiser extends Piece {
     return 'B';
   }
 
+  getEmoji(): string {
+    return '💪';
+  }
+
   useAbility(target?: AxialCoord): boolean {
     // Not implemented yet
     return false;

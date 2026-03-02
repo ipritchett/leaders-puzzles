@@ -7,7 +7,11 @@ export class Archer extends Piece {
   }
 
   getAcronym(): string {
-    return 'Ac';
+    return 'Ar';
+  }
+
+  getEmoji(): string {
+    return '🏹';
   }
 
   useAbility(target?: AxialCoord): boolean {

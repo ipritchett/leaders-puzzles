@@ -1,13 +1,17 @@
 import type { AxialCoord, PlayerColor } from '../types.js';
 import { Piece } from '../Piece.js';
 
-export class HermitAndCub extends Piece {
+export class Cub extends Piece {
   constructor(id: string, color: PlayerColor, position: AxialCoord) {
     super(id, color, position, false);
   }
 
   getAcronym(): string {
-    return 'HC';
+    return 'C';
+  }
+
+  getEmoji(): string {
+    return '🐻';
   }
 
   useAbility(target?: AxialCoord): boolean {

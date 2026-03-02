@@ -21,6 +21,8 @@ export abstract class Piece {
 
   abstract getAcronym(): string;
 
+  abstract getEmoji(): string;
+
   abstract useAbility(target?: AxialCoord): boolean;
 
   hasAbilityImplemented(): boolean {

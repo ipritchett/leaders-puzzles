@@ -12,6 +12,10 @@ export class Leader extends Piece {
     return 'L';
   }
 
+  getEmoji(): string {
+    return '👑';
+  }
+
   useAbility(target?: AxialCoord): boolean {
     // Not implemented yet
     return false;

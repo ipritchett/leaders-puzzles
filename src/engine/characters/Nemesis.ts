@@ -10,6 +10,10 @@ export class Nemesis extends Piece {
     return 'N';
   }
 
+  getEmoji(): string {
+    return '👹';
+  }
+
   useAbility(target?: AxialCoord): boolean {
     // Not implemented yet
     return false;
