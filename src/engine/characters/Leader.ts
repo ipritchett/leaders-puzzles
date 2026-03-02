@@ -1,6 +1,6 @@
 import type { AxialCoord } from '../types.js';
 import { PlayerColor } from '../types.js';
-import { Piece } from '../Piece.js';
+import { Piece, type AbilityTargetsGenerator } from '../Piece.js';
 import type { Board } from '../Board.js';
 
 export class Leader extends Piece {
@@ -16,7 +16,12 @@ export class Leader extends Piece {
     return '👑';
   }
 
-  useAbility(target?: AxialCoord): boolean {
+  *getValidAbilityTargets(_board: Board): AbilityTargetsGenerator {
+    yield [];
+    return [];
+  }
+
+  useAbility(_board: Board, _targets?: AxialCoord[]): boolean {
     // Not implemented yet
     return false;
   }
@@ -26,16 +31,16 @@ export class Leader extends Piece {
    */
   isCaptured(board: Board): boolean {
     const neighbors = board.getNeighbors(this.position);
-    let enemyCount = 0;
+    let enemyCapturePower = 0;
 
     for (const neighbor of neighbors) {
       const piece = board.getPieceAt(neighbor);
       if (piece && piece.color !== this.color) {
-        enemyCount++;
+        enemyCapturePower += piece.getCapturePower();
       }
     }
 
-    return enemyCount >= 2;
+    return enemyCapturePower >= 2;
   }
 
   /**

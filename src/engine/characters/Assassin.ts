@@ -1,5 +1,6 @@
 import type { AxialCoord, PlayerColor } from '../types.js';
-import { Piece } from '../Piece.js';
+import { Piece, type AbilityTargetsGenerator } from '../Piece.js';
+import type { Board } from '../Board.js';
 
 export class Assassin extends Piece {
   constructor(id: string, color: PlayerColor, position: AxialCoord) {
@@ -10,11 +11,20 @@ export class Assassin extends Piece {
     return 'As';
   }
 
+  getCapturePower(): number {
+    return 2;
+  }
+
   getEmoji(): string {
     return '🔪';
   }
 
-  useAbility(target?: AxialCoord): boolean {
+  *getValidAbilityTargets(_board: Board): AbilityTargetsGenerator {
+    yield [];
+    return [];
+  }
+
+  useAbility(_board: Board, _targets?: AxialCoord[]): boolean {
     // Not implemented yet
     return false;
   }

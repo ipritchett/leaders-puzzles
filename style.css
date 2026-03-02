@@ -151,8 +151,7 @@ body {
   display: none;
 }
 
-#moveBtn,
-#useAbilityBtn {
+#toggleTargetsBtn {
   padding: 10px 20px;
   font-size: 14px;
   font-weight: 600;
@@ -160,42 +159,37 @@ body {
   border-radius: 6px;
   cursor: pointer;
   transition: background 0.2s, transform 0.1s;
-}
-
-#moveBtn {
-  background: #4a9eff;
   color: #ffffff;
 }
 
-#moveBtn:hover {
+#toggleTargetsBtn.mode-move:not(:disabled) {
+  background: #4a9eff;
+}
+
+#toggleTargetsBtn.mode-move:hover:not(:disabled) {
   background: #6bb0ff;
-  transform: scale(1.05);
 }
 
-#moveBtn:active {
+#toggleTargetsBtn.mode-move:active:not(:disabled) {
   background: #3a8eef;
-  transform: scale(0.98);
 }
 
-#useAbilityBtn {
+#toggleTargetsBtn.mode-ability:not(:disabled) {
+  background: #c87840;
+}
+
+#toggleTargetsBtn.mode-ability:hover:not(:disabled) {
+  background: #d4a070;
+}
+
+#toggleTargetsBtn.mode-ability:active:not(:disabled) {
+  background: #b86830;
+}
+
+#toggleTargetsBtn:disabled {
   background: #666666;
   color: #ffffff;
   cursor: not-allowed;
-}
-
-#useAbilityBtn:not(:disabled) {
-  background: #8b5cf6;
-  cursor: pointer;
-}
-
-#useAbilityBtn:not(:disabled):hover {
-  background: #9d6ef7;
-  transform: scale(1.05);
-}
-
-#useAbilityBtn:not(:disabled):active {
-  background: #7a4ae5;
-  transform: scale(0.98);
 }
 
 #victoryOverlay {
