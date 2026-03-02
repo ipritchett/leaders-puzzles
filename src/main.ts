@@ -40,14 +40,9 @@ function main() {
     throw new Error('Action buttons container not found');
   }
 
-  const moveBtn = document.getElementById('moveBtn') as HTMLButtonElement;
-  if (!moveBtn) {
-    throw new Error('Move button not found');
-  }
-
-  const useAbilityBtn = document.getElementById('useAbilityBtn') as HTMLButtonElement;
-  if (!useAbilityBtn) {
-    throw new Error('Use ability button not found');
+  const toggleTargetsBtn = document.getElementById('toggleTargetsBtn') as HTMLButtonElement;
+  if (!toggleTargetsBtn) {
+    throw new Error('Toggle targets button not found');
   }
 
   const currentNotation = document.getElementById('currentNotation');
@@ -82,12 +77,10 @@ function main() {
   });
 
   // Set up action buttons
-  moveBtn.addEventListener('click', () => {
-    inputHandler.setActionMode('move');
-  });
-
-  useAbilityBtn.addEventListener('click', () => {
-    inputHandler.setActionMode('ability');
+  toggleTargetsBtn.addEventListener('click', () => {
+    const nextMode = game.getActionMode() === 'move' ? 'ability' : 'move';
+    game.setActionMode(nextMode);
+    render();
   });
 
   // Set up reset board button
@@ -123,7 +116,14 @@ function main() {
       if (actionButtons) {
         actionButtons.classList.remove('hidden');
       }
-      useAbilityBtn.disabled = !selectedPiece.hasAbilityImplemented();
+      const canUseAbility = selectedPiece.hasAbilityImplemented();
+      toggleTargetsBtn.disabled = !canUseAbility;
+      const isMoveMode = game.getActionMode() === 'move';
+      toggleTargetsBtn.textContent = isMoveMode
+        ? 'Show Ability Targets'
+        : 'Show Move Targets';
+      toggleTargetsBtn.classList.toggle('mode-move', isMoveMode);
+      toggleTargetsBtn.classList.toggle('mode-ability', !isMoveMode);
     } else {
       if (actionButtons) {
         actionButtons.classList.add('hidden');

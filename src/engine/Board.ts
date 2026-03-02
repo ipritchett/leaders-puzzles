@@ -58,6 +58,10 @@ export class Board {
     return this.occupancy.get(key) || null;
   }
 
+  getDirection(from: AxialCoord, to: AxialCoord): AxialCoord {
+    return { q: Math.sign(to.q - from.q), r: Math.sign(to.r - from.r) };
+  }
+
   placePiece(piece: Piece, coord: AxialCoord): void {
     if (!this.isValidCell(coord)) {
       throw new Error(`Invalid cell: ${coord.q}, ${coord.r}`);
@@ -78,6 +82,7 @@ export class Board {
     }
     this.occupancy.delete(this.coordToString(from));
     this.occupancy.set(this.coordToString(to), piece);
+    piece.position = to;
   }
 
   removePiece(coord: AxialCoord): void {

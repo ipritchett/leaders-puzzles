@@ -1,7 +1,7 @@
 import type { AxialCoord } from './types.js';
 import { PlayerColor } from './types.js';
 import { Board } from './Board.js';
-import type { Piece } from './Piece.js';
+import type { Piece, AbilityTargetsGenerator } from './Piece.js';
 import { Leader } from './characters/Leader.js';
 import { Acrobat } from './characters/Acrobat.js';
 import { ClawLauncher } from './characters/ClawLauncher.js';
@@ -44,16 +44,20 @@ const nonLeaderClasses = [
   Cub,
 ];
 
+export type ActionMode = 'move' | 'ability';
+
 // TODO: Move this to its own class
 export class UIState {
   selectedPiece: Piece | null = null;
   heldPiece: Piece | null = null;
   cursorPixelX: number = 0;
   cursorPixelY: number = 0;
+  actionMode: ActionMode = 'move';
 
   clear(): void {
     this.selectedPiece = null;
     this.heldPiece = null;
+    this.actionMode = 'move';
   }
 
   setSelectedPiece(piece: Piece): void {
@@ -62,6 +66,14 @@ export class UIState {
 
   setHeldPiece(piece: Piece): void {
     this.heldPiece = piece;
+  }
+
+  setActionMode(mode: ActionMode): void {
+    this.actionMode = mode;
+  }
+
+  getActionMode(): ActionMode {
+    return this.actionMode;
   }
   
   setCursorPosition(pixelX: number, pixelY: number): void {
@@ -80,6 +92,9 @@ export class Game {
   public readonly pieces: Piece[];
   public gameOver: boolean;
   public winner: PlayerColor | null;
+  private abilityGenerator: AbilityTargetsGenerator | null = null;
+  private currentAbilityTargets: AxialCoord[] = [];
+  private abilityTargetsChosenSoFar: AxialCoord[] = [];
 
   constructor(notation?: string) {
     this.board = new Board();
@@ -167,23 +182,28 @@ export class Game {
     const piece = this.board.getPieceAt(coord);
     
     if (!piece) {
+      this.clearAbilityFlow();
       this.uiState.clear();
       return false;
     }
 
     // Check if piece belongs to current player
     if (piece.color !== this.currentTurn) {
+      this.clearAbilityFlow();
       this.uiState.clear();
       return false;
     }
 
     // Check if piece has already moved this turn
     if (this.movedPieces.has(piece.id)) {
+      this.clearAbilityFlow();
       this.uiState.clear();
       return false;
     }
 
+    this.clearAbilityFlow();
     this.uiState.setSelectedPiece(piece);
+    this.uiState.setActionMode('move');
     return true;
   }
 
@@ -193,6 +213,17 @@ export class Game {
 
   getUIState(): UIState {
     return this.uiState;
+  }
+
+  setActionMode(mode: ActionMode): void {
+    if (mode === 'move') {
+      this.clearAbilityFlow();
+    }
+    this.uiState.setActionMode(mode);
+  }
+
+  getActionMode(): ActionMode {
+    return this.uiState.getActionMode();
   }
 
   /** Start dragging the selected piece at cursor position. Called by input. */
@@ -211,6 +242,7 @@ export class Game {
 
   /** End drag (drop or cancel). */
   clearDrag(): void {
+    this.clearAbilityFlow();
     this.uiState.clear();
   }
 
@@ -219,6 +251,78 @@ export class Game {
       return [];
     }
     return this.uiState.selectedPiece.getValidMoves(this.board);
+  }
+
+  getValidAbilityTargetsForSelected(): AxialCoord[] {
+    if (!this.uiState.selectedPiece || this.uiState.getActionMode() !== 'ability') {
+      return [];
+    }
+    if (this.abilityGenerator !== null) {
+      return this.currentAbilityTargets;
+    }
+    this.startAbilityFlow();
+    return this.currentAbilityTargets;
+  }
+
+  private startAbilityFlow(): void {
+    const piece = this.uiState.selectedPiece;
+    if (!piece) return;
+    this.abilityTargetsChosenSoFar = [];
+    const gen = piece.getValidAbilityTargets(this.board);
+    const result = gen.next();
+    this.abilityGenerator = gen;
+    this.currentAbilityTargets = result.value ?? [];
+  }
+
+  getAbilityTargetsChosenSoFar(): AxialCoord[] {
+    return this.abilityTargetsChosenSoFar;
+  }
+
+  /** Submit a chosen ability target; advances the generator or executes ability when done. Returns true if the click was consumed. */
+  submitAbilityTarget(coord: AxialCoord): boolean {
+    if (this.abilityGenerator === null || !this.uiState.selectedPiece) {
+      return false;
+    }
+    const isValid = this.currentAbilityTargets.some(
+      (c) => c.q === coord.q && c.r === coord.r
+    );
+    if (!isValid) {
+      return false;
+    }
+    const result = this.abilityGenerator.next(coord);
+    if (result.done) {
+      const targets = result.value ?? [];
+      this.clearAbilityFlow();
+      if (targets.length > 0) {
+        this.executeAbility(targets);
+      }
+      return true;
+    }
+    this.abilityTargetsChosenSoFar.push(coord);
+    this.currentAbilityTargets = result.value ?? [];
+    return true;
+  }
+
+  private clearAbilityFlow(): void {
+    this.abilityGenerator = null;
+    this.currentAbilityTargets = [];
+    this.abilityTargetsChosenSoFar = [];
+  }
+
+  private executeAbility(targets: AxialCoord[]): boolean {
+    const piece = this.uiState.selectedPiece;
+    if (!piece || this.movedPieces.has(piece.id)) return false;
+    const ok = piece.useAbility(this.board, targets);
+    if (ok) {
+      this.movedPieces.add(piece.id);
+      this.uiState.clear();
+      try {
+        this.checkVictoryConditions();
+      } catch (error) {
+        console.error('Error checking victory conditions:', error);
+      }
+    }
+    return ok;
   }
 
   movePiece(target: AxialCoord): boolean {
@@ -239,6 +343,7 @@ export class Game {
     this.board.movePiece(from, target);
     this.uiState.selectedPiece.position = target;
     this.movedPieces.add(this.uiState.selectedPiece.id);
+    this.clearAbilityFlow();
     this.uiState.clear();
 
     // Check for victory conditions after move (don't let errors break the move)
@@ -249,32 +354,6 @@ export class Game {
     }
 
     return true;
-  }
-
-  useAbility(target?: AxialCoord): boolean {
-    if (!this.uiState.selectedPiece) {
-      return false;
-    }
-
-    // Check if piece has already moved this turn
-    if (this.movedPieces.has(this.uiState.selectedPiece.id)) {
-      return false;
-    }
-
-    // Use the piece's ability
-    const abilityUsed = this.uiState.selectedPiece.useAbility(target);
-    if (abilityUsed) {
-      this.movedPieces.add(this.uiState.selectedPiece.id);
-      this.uiState.clear();
-      // Check for victory conditions after ability use (don't let errors break the ability)
-      try {
-        this.checkVictoryConditions();
-      } catch (error) {
-        console.error('Error checking victory conditions:', error);
-      }
-    }
-
-    return abilityUsed;
   }
 
   private checkVictoryConditions(): void {

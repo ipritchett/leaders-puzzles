@@ -232,14 +232,20 @@ export class BoardRenderer {
     );
   }
 
-  private drawCell(coord: AxialCoord, isHighlighted: boolean): void {
+  private drawCell(coord: AxialCoord, highlight: 'move' | 'ability' | 'ability-chosen' | 'none'): void {
     const { x, y } = this.axialToPixel(coord);
 
     // Draw cell with gradient for depth
     const gradient = this.ctx.createRadialGradient(x, y - 3, 0, x, y, this.cellRadius);
-    if (isHighlighted) {
+    if (highlight === 'move') {
       gradient.addColorStop(0, '#b8e5b8');
       gradient.addColorStop(1, '#90c890');
+    } else if (highlight === 'ability') {
+      gradient.addColorStop(0, '#e8c8a8');
+      gradient.addColorStop(1, '#d4a070');
+    } else if (highlight === 'ability-chosen') {
+      gradient.addColorStop(0, '#f0e8a0');
+      gradient.addColorStop(1, '#e0d070');
     } else {
       gradient.addColorStop(0, '#faf5e8');
       gradient.addColorStop(0.7, '#f5e6d3');
@@ -252,7 +258,12 @@ export class BoardRenderer {
     this.ctx.fill();
 
     // Draw subtle border
-    this.ctx.strokeStyle = isHighlighted ? '#6ba86b' : '#d4af37';
+    const strokeColor =
+      highlight === 'move' ? '#6ba86b'
+      : highlight === 'ability' ? '#c87840'
+      : highlight === 'ability-chosen' ? '#c4a830'
+      : '#d4af37';
+    this.ctx.strokeStyle = strokeColor;
     this.ctx.lineWidth = 1.5;
     this.ctx.stroke();
 
@@ -427,17 +438,22 @@ export class BoardRenderer {
     // Draw board outline
     this.drawBoardOutline(boardBgSize+this.hexSize*0.2);
 
-    // Get selected piece and valid moves
+    // Get selected piece and valid targets based on action mode
+    const actionMode = game.getActionMode();
     const selectedPiece = game.getSelectedPiece();
-    const validMoves = selectedPiece ? game.getValidMovesForSelected() : [];
+    const validMoveCoords = actionMode === 'move' && selectedPiece ? game.getValidMovesForSelected() : [];
+    const validAbilityCoords = actionMode === 'ability' && selectedPiece ? game.getValidAbilityTargetsForSelected() : [];
+    const abilityChosenSoFar = actionMode === 'ability' ? game.getAbilityTargetsChosenSoFar() : [];
 
     // Draw all cells
     const allCells = game.board.getAllValidCells();
     for (const cell of allCells) {
-      const isHighlighted = validMoves.some(
-        move => move.q === cell.q && move.r === cell.r
-      );
-      this.drawCell(cell, isHighlighted);
+      const isMoveTarget = validMoveCoords.some(m => m.q === cell.q && m.r === cell.r);
+      const isAbilityTarget = validAbilityCoords.some(m => m.q === cell.q && m.r === cell.r);
+      const isAbilityChosen = abilityChosenSoFar.some(m => m.q === cell.q && m.r === cell.r);
+      const highlight: 'move' | 'ability' | 'ability-chosen' | 'none' =
+        isAbilityChosen ? 'ability-chosen' : isAbilityTarget ? 'ability' : isMoveTarget ? 'move' : 'none';
+      this.drawCell(cell, highlight);
     }
 
     // Draw pieces (skip the piece being dragged at its cell; it's drawn at cursor below)

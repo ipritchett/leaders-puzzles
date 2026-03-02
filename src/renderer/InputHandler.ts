@@ -1,7 +1,8 @@
 import type { Game } from '../engine/Game.js';
 import type { BoardRenderer } from './BoardRenderer.js';
 
-type ActionMode = 'move' | 'ability';
+import type { ActionMode } from '../engine/Game.js';
+import type { AxialCoord } from '../engine/types.js';
 
 const DRAG_THRESHOLD_PX = 5;
 
@@ -10,9 +11,8 @@ export class InputHandler {
   private game: Game;
   private renderer: BoardRenderer;
   private onStateChange: () => void;
-  private actionMode: ActionMode = 'move';
   private isDragging = false;
-  private pendingDrag: { startX: number; startY: number } | null = null;
+  private pendingClick: { startX: number; startY: number; coord: AxialCoord } | null = null;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -29,7 +29,7 @@ export class InputHandler {
   }
 
   setActionMode(mode: ActionMode): void {
-    this.actionMode = mode;
+    this.game.setActionMode(mode);
   }
 
   private setupEventListeners(): void {
@@ -37,7 +37,6 @@ export class InputHandler {
     this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
     this.canvas.addEventListener('mouseup', (e) => this.handleMouseUp(e));
     this.canvas.addEventListener('mouseleave', () => this.handleMouseLeave());
-    this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
   }
 
   private getCanvasCoords(event: MouseEvent): { x: number; y: number } {
@@ -53,19 +52,32 @@ export class InputHandler {
       return;
     }
 
-    if (this.actionMode !== 'move') {
-      return;
-    }
-
     const { x, y } = this.getCanvasCoords(event);
     const coord = this.renderer.pixelToAxialCoord(x, y);
     if (!coord || !this.game.board.isValidCell(coord)) {
       return;
     }
 
-    // Click-to-move: we already have a piece selected and this cell is a valid move target
+    if (this.game.getActionMode() === 'ability') {
+      // Defer ability-mode click to mouseup (so we don't double-handle with a hypothetical click event)
+      this.pendingClick = { startX: x, startY: y, coord };
+      return;
+    }
+
+    // Move mode
     const uiState = this.game.getUIState();
     if (uiState.selectedPiece) {
+      // Click on the already-selected piece: switch to ability mode if it has an ability
+      const isClickOnSelectedPiece =
+        coord.q === uiState.selectedPiece.position.q &&
+        coord.r === uiState.selectedPiece.position.r;
+      if (isClickOnSelectedPiece && uiState.selectedPiece.hasAbilityImplemented()) {
+        this.game.setActionMode('ability');
+        this.onStateChange();
+        return;
+      }
+
+      // Click-to-move: this cell is a valid move target
       const validMoves = this.game.getValidMovesForSelected();
       const isValidTarget = validMoves.some(
         (m) => m.q === coord.q && m.r === coord.r
@@ -79,12 +91,15 @@ export class InputHandler {
       }
     }
 
-    // Start selection and maybe drag: select piece and record mousedown for threshold
+    // Start selection, or clear selection if clicking empty / wrong piece
     const selected = this.game.selectPiece(coord);
     if (selected) {
-      this.pendingDrag = { startX: x, startY: y };
+      this.pendingClick = { startX: x, startY: y, coord };
       this.onStateChange();
       event.preventDefault();
+    } else {
+      // Clicked empty cell (or enemy / already-moved): selection was cleared
+      this.onStateChange();
     }
   }
 
@@ -92,19 +107,19 @@ export class InputHandler {
     const { x, y } = this.getCanvasCoords(event);
 
     // Not yet dragging: check if we've moved past threshold
-    if (this.pendingDrag) {
-      const dx = x - this.pendingDrag.startX;
-      const dy = y - this.pendingDrag.startY;
+    if (this.pendingClick) {
+      const dx = x - this.pendingClick.startX;
+      const dy = y - this.pendingClick.startY;
       if (dx * dx + dy * dy <= DRAG_THRESHOLD_PX * DRAG_THRESHOLD_PX) {
         return;
       }
       const piece = this.game.getUIState().selectedPiece;
       if (!piece) {
-        this.pendingDrag = null;
+        this.pendingClick = null;
         return;
       }
       this.isDragging = true;
-      this.pendingDrag = null;
+      this.pendingClick = null;
       this.game.startDrag(piece, x, y);
       this.onStateChange();
       return;
@@ -136,48 +151,44 @@ export class InputHandler {
       this.game.clearDrag();
       this.onStateChange();
       event.preventDefault();
+    } else if (
+      this.pendingClick &&
+      this.game.getActionMode() === 'ability'
+    ) {
+      // Click completed in ability mode (no drag): use ability or select piece
+      this.handleAbilityModeClick(this.pendingClick.coord);
+      this.onStateChange();
     }
 
-    this.pendingDrag = null;
+    this.pendingClick = null;
   }
 
   private handleMouseLeave(): void {
-    if (this.isDragging || this.pendingDrag) {
+    if (this.isDragging || this.pendingClick) {
       this.isDragging = false;
-      this.pendingDrag = null;
+      this.pendingClick = null;
       this.game.clearDrag();
       this.onStateChange();
     }
   }
 
-  private handleCanvasClick(event: MouseEvent): void {
-    if (this.game.gameOver || this.actionMode !== 'ability') {
-      return;
-    }
-
-    const { x, y } = this.getCanvasCoords(event);
-    const coord = this.renderer.pixelToAxialCoord(x, y);
-    if (!coord || !this.game.board.isValidCell(coord)) {
-      return;
-    }
-
+  private handleAbilityModeClick(coord: AxialCoord): void {
     const selectedPiece = this.game.getSelectedPiece();
 
     if (selectedPiece) {
-      const abilityUsed = this.game.useAbility(coord);
-      if (abilityUsed) {
-        this.onStateChange();
-      } else {
-        const selected = this.game.selectPiece(coord);
-        if (selected) {
-          this.onStateChange();
-        }
+      // Click on the selected piece itself: keep ability mode, do nothing
+      const isClickOnSelectedPiece =
+        coord.q === selectedPiece.position.q && coord.r === selectedPiece.position.r;
+      if (isClickOnSelectedPiece) {
+        return;
+      }
+
+      const consumed = this.game.submitAbilityTarget(coord);
+      if (!consumed) {
+        this.game.selectPiece(coord);
       }
     } else {
-      const selected = this.game.selectPiece(coord);
-      if (selected) {
-        this.onStateChange();
-      }
+      this.game.selectPiece(coord);
     }
   }
 
