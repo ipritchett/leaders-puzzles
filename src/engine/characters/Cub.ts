@@ -7,7 +7,8 @@ export class Cub extends Piece {
     super(id, color, position, false);
   }
 
-  getCapturePower(): number {
+  threatTo(_target: AxialCoord): number {
+    // Cub never threatens leaders
     return 0;
   }
 

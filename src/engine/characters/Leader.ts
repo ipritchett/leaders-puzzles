@@ -30,16 +30,11 @@ export class Leader extends Piece {
    * Check if this leader is captured (adjacent to 2+ enemy pieces)
    */
   isCaptured(board: Board): boolean {
-    const neighbors = board.getNeighbors(this.position);
+    const enemies = board.getPiecesByColor(this.color === PlayerColor.White ? PlayerColor.Black : PlayerColor.White);
     let enemyCapturePower = 0;
-
-    for (const neighbor of neighbors) {
-      const piece = board.getPieceAt(neighbor);
-      if (piece && piece.color !== this.color) {
-        enemyCapturePower += piece.getCapturePower();
-      }
+    for (const enemy of enemies) {
+      enemyCapturePower += enemy.threatTo(this.position);
     }
-
     return enemyCapturePower >= 2;
   }
 

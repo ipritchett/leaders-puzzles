@@ -15,13 +15,43 @@ export class ClawLauncher extends Piece {
     return '🪝';
   }
 
-  *getValidAbilityTargets(_board: Board): AbilityTargetsGenerator {
-    yield [];
-    return [];
+  *getValidAbilityTargets(board: Board): AbilityTargetsGenerator {
+    const myNeighbors = board.getNeighbors(this.position);
+    const visibleCharacterPositions = board.getVisiblePieces(this.position)
+     .map(piece => piece.position)
+     // Ignore adjacent pieces
+     .filter(position => !myNeighbors.some(n => n.q === position.q && n.r === position.r));
+    console.log(`Visible non-adjacent pieces: ${visibleCharacterPositions.map(p => `(${p.q}, ${p.r})`).join(', ')}`);
+    const chosenTarget = yield visibleCharacterPositions;
+    if (chosenTarget === undefined) {
+      return [];
+    }
+    // Choose to pull target to me or me to target
+    const direction = board.getDirection(this.position, chosenTarget);
+    const myNewPosition  = { q: chosenTarget.q - direction.q, r: chosenTarget.r - direction.r };
+    const targetNewPosition = { q: this.position.q + direction.q, r: this.position.r + direction.r };
+    const chosenDestination = yield [myNewPosition, targetNewPosition];
+    if (chosenDestination === undefined) {
+      return [];
+    }
+    if (chosenDestination.q === myNewPosition.q && chosenDestination.r === myNewPosition.r) {
+      return [this.position, myNewPosition];
+    }
+    return [chosenTarget, chosenDestination];
   }
 
-  useAbility(_board: Board, _targets?: AxialCoord[]): boolean {
-    // Not implemented yet
-    return false;
+  useAbility(board: Board, targets: AxialCoord[]): boolean {
+    if (targets === undefined || targets.length !== 2) {
+      return false;
+    }
+    const [from, to] = targets;
+    const piece = board.getPieceAt(from);
+    if (!piece) return false;
+    board.movePiece(from, to);
+    return true;
+  }
+
+  hasActiveAbility(): boolean {
+    return true;
   }
 }

@@ -1,5 +1,15 @@
 import type { AxialCoord } from './types.js';
 import type { Piece } from './Piece.js';
+import type { PlayerColor } from './types.js';
+
+const DIRECTIONS: AxialCoord[] = [
+  { q: 0, r: -1 },
+  { q: 0, r: 1 },
+  { q: 1, r: -1 },
+  { q: 1, r: 0 },
+  { q: -1, r: 0 },
+  { q: -1, r: 1 },
+];
 
 export class Board {
   private validCells: Set<string>;
@@ -49,6 +59,10 @@ export class Board {
     return neighbors.filter(n => this.isValidCell(n));
   }
 
+  getPiecesByColor(color: PlayerColor): Piece[] {
+    return Array.from(this.occupancy.values()).filter(p => p.color === color);
+  }
+
   isOccupied(coord: AxialCoord): boolean {
     return this.occupancy.has(this.coordToString(coord));
   }
@@ -60,6 +74,28 @@ export class Board {
 
   getDirection(from: AxialCoord, to: AxialCoord): AxialCoord {
     return { q: Math.sign(to.q - from.q), r: Math.sign(to.r - from.r) };
+  }
+
+  getVisiblePieces(origin: AxialCoord): Piece[] {
+    const visiblePieces: Piece[] = [];
+    for (const direction of DIRECTIONS) {
+      let current = origin;
+      while (true) {
+        const target = { q: current.q + direction.q, r: current.r + direction.r };
+        // Stop when we hit the edge of the board or at first piece
+        if (!this.isValidCell(target)) {
+          break;
+        }
+        const piece = this.getPieceAt(target);
+        if (piece) {
+          visiblePieces.push(piece);
+          break;
+        }
+        current = target;
+      }
+    }
+    console.log(`Visible pieces: ${visiblePieces.map(p => `(${p.position.q}, ${p.position.r})`).join(', ')}`);
+    return visiblePieces;
   }
 
   placePiece(piece: Piece, coord: AxialCoord): void {

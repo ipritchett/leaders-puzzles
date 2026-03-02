@@ -22,8 +22,19 @@ export abstract class Piece {
     return neighbors.filter(coord => !board.isOccupied(coord));
   }
 
-  getCapturePower(): number {
-    return 1;
+  threatTo(target: AxialCoord): number {
+    const qDifference = Math.abs(this.position.q - target.q);
+    const rDifference = Math.abs(this.position.r - target.r);
+    if (qDifference === 1 && rDifference === 0) {
+      return 1;
+    }
+    if (qDifference === 0 && rDifference === 1) {
+      return 1;
+    }
+    if (qDifference === 1 && rDifference === 1) {
+      return 1;
+    }
+    return 0;
   }
 
   /** Yields valid targets for each step; receive chosen target via next(chosen). Returns full targets array when done. */
@@ -35,7 +46,7 @@ export abstract class Piece {
 
   abstract useAbility(board: Board, targets?: AxialCoord[]): boolean;
 
-  hasAbilityImplemented(): boolean {
-    return false; // Override in subclasses when ability is implemented
+  hasActiveAbility(): boolean {
+    return false;
   }
 }
