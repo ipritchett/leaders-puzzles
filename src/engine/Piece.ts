@@ -69,8 +69,4 @@ export abstract class Piece {
     this.isMoveable = true;
     this.canUseAbility = true;
   }
-
-  setNumberOfMoves(numberOfMoves: number): void {
-    this.numberOfMoves = numberOfMoves;
-  }
 }

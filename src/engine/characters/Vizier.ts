@@ -19,7 +19,7 @@ export class Vizier extends Piece {
   affectPieces(board: Board): void {
     const alliedLeader = board.getAlliedLeader(this.color);
     if (alliedLeader) {
-      alliedLeader.setNumberOfMoves(2);
+      alliedLeader.numberOfMoves = 2;
     }
   }
 
