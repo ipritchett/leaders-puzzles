@@ -110,6 +110,8 @@ export class Game {
     } else {
       this.initializePieces();
     }
+    // Instantiate the board with correct effects.
+    this.pieces.forEach(piece => piece.affectPieces(this.board));
   }
 
   private initializePieces(): void {
@@ -342,7 +344,11 @@ export class Game {
     const from = this.uiState.selectedPiece.position;
     this.board.movePiece(from, target);
     this.uiState.selectedPiece.position = target;
-    this.movedPieces.add(this.uiState.selectedPiece.id);
+    if (this.uiState.selectedPiece.numberOfMoves > 1) {
+      this.uiState.selectedPiece.numberOfMoves--;
+    } else {
+      this.movedPieces.add(this.uiState.selectedPiece.id);
+    }
     this.clearAbilityFlow();
     this.uiState.clear();
 
@@ -392,6 +398,9 @@ export class Game {
   }
 
   endTurn(): void {
+    // First reset all status effects, THEN affect all pieces.
+    this.pieces.forEach(piece => piece.resetPiece());
+    this.pieces.forEach(piece => piece.affectPieces(this.board));
     this.currentTurn = this.currentTurn === PlayerColor.White 
       ? PlayerColor.Black 
       : PlayerColor.White;
@@ -523,5 +532,8 @@ export class Game {
     } else {
       this.initializePieces();
     }
+    // Reset the board with correct effects.
+    this.pieces.forEach(piece => piece.resetPiece());
+    this.pieces.forEach(piece => piece.affectPieces(this.board));
   }
 }

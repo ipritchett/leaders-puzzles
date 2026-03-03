@@ -20,7 +20,7 @@ export class Bruiser extends Piece {
       .filter(coord => board.isOccupied(coord))
       .map(coord => board.getPieceAt(coord))
       .filter(piece => piece !== null)
-      .filter(piece => piece.color !== this.color)
+      .filter(piece => piece.color !== this.color && piece.isMoveable)
       .map(enemy => enemy.position);
     const validTargets = adjacentEnemyPositions || [];
     const chosenEnemyPosition = yield validTargets;

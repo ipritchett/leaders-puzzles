@@ -9,6 +9,9 @@ export abstract class Piece {
   public readonly color: PlayerColor;
   public position: AxialCoord;
   public readonly isLeader: boolean;
+  public isMoveable: boolean = true;
+  public canUseAbility: boolean = true;
+  public numberOfMoves: number = 1;
 
   constructor(id: string, color: PlayerColor, position: AxialCoord, isLeader: boolean = false) {
     this.id = id;
@@ -44,6 +47,11 @@ export abstract class Piece {
 
   abstract getEmoji(): string;
 
+  // For pieces with innate abilities that affect other pieces. Called for all pieces before the start of a turn.
+  affectPieces(_board: Board): void {
+    return;
+  }
+
   // Default implementation for a piece with a single-target space ability
   useAbility(board: Board, targets: AxialCoord[]): boolean {
     if (targets.length !== 1) {
@@ -55,5 +63,14 @@ export abstract class Piece {
 
   hasActiveAbility(): boolean {
     return false;
+  }
+
+  resetPiece(): void {
+    this.isMoveable = true;
+    this.canUseAbility = true;
+  }
+
+  setNumberOfMoves(numberOfMoves: number): void {
+    this.numberOfMoves = numberOfMoves;
   }
 }

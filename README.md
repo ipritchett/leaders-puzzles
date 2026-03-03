@@ -22,21 +22,21 @@ Each piece displays its class acronym (e.g., "L" for Leader, "B" for Bruiser) as
 
 * Implement individual character classes:
     [x] Acrobat
-    [] Archer
+    [X] Archer
     [x] Assassin
     [x] Brewmaster
     [x] Bruiser
     [x] Claw Launcher
     [] Hermit & Cub
     [x] Illusionist
-    [] Jailer
+    [X] Jailer
     [x] Leader
     [x] Manipulator
     [] Nemesis
-    [] Protector
+    [X] Protector
     [x] Rider
     [x] Royal Guard
-    [] Vizier
+    [X] Vizier
     [x] Wanderer
 * Prevent user from taking an illegal move
 * Allow user to copy the notation to their solution to the puzzle when they end their turn or win

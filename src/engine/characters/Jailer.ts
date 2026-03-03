@@ -24,4 +24,14 @@ export class Jailer extends Piece {
     // Not implemented yet
     return false;
   }
+
+  affectPieces(board: Board): void {
+    const neighbors = board.getNeighbors(this.position);
+    neighbors.forEach(coord => {
+      const piece = board.getPieceAt(coord);
+      if (piece && piece.color !== this.color) {
+        piece.canUseAbility = false;
+      }
+    });
+  }
 }

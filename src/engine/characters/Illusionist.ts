@@ -18,6 +18,7 @@ export class Illusionist extends Piece {
   *getValidAbilityTargets(board: Board): AbilityTargetsGenerator {
     const myNeighbors = board.getNeighbors(this.position);
     const validTargets = board.getVisiblePieces(this.position)
+     .filter(piece => piece.isMoveable)
      .map(piece => piece.position)
      .filter(position => !myNeighbors.some(n => n.q === position.q && n.r === position.r));
 

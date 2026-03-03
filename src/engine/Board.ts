@@ -115,6 +115,12 @@ export class Board {
     return visiblePieces;
   }
 
+  // Only supports one leader but them's the rules.
+  getAlliedLeader(color: PlayerColor): Piece | undefined {
+    const alliedPieces = this.getPiecesByColor(color);
+    return alliedPieces.filter(p => p.isLeader)[0];
+  }
+
   placePiece(piece: Piece, coord: AxialCoord): void {
     if (!this.isValidCell(coord)) {
       throw new Error(`Invalid cell: ${coord.q}, ${coord.r}`);
