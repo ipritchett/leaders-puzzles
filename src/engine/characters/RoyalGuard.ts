@@ -30,14 +30,6 @@ export class RoyalGuard extends Piece {
     return [moveSpace];
   }
 
-  useAbility(board: Board, targets: AxialCoord[]): boolean {
-    if (targets.length !== 1) {
-      return false;
-    }
-    board.movePiece(this.position, targets[0]);
-    return true;
-  }
-
   hasActiveAbility(): boolean {
     return true;
   }

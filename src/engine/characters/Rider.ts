@@ -15,13 +15,17 @@ export class Rider extends Piece {
     return '🐴';
   }
 
-  *getValidAbilityTargets(_board: Board): AbilityTargetsGenerator {
-    yield [];
-    return [];
+  *getValidAbilityTargets(board: Board): AbilityTargetsGenerator {
+    // Filter out any destination 2 spaces away if the intermediate space (1 away in the same direction) is occupied
+    const twoSpacesAway = board.getSpacesAway(this.position, 2).filter(space => {
+      const midpoint = { q: (this.position.q + space.q) / 2, r: (this.position.r + space.r) / 2 };
+      return !board.isOccupied(midpoint);
+    });
+    const target = yield twoSpacesAway;
+    return target !== undefined ? [target] : [];
   }
 
-  useAbility(_board: Board, _targets?: AxialCoord[]): boolean {
-    // Not implemented yet
-    return false;
+  hasActiveAbility(): boolean {
+    return true;
   }
 }

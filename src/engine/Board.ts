@@ -48,16 +48,21 @@ export class Board {
   }
 
   getNeighbors(coord: AxialCoord): AxialCoord[] {
-    const neighbors: AxialCoord[] = [
-      { q: coord.q + 1, r: coord.r },
-      { q: coord.q - 1, r: coord.r },
-      { q: coord.q, r: coord.r + 1 },
-      { q: coord.q, r: coord.r - 1 },
-      { q: coord.q + 1, r: coord.r - 1 },
-      { q: coord.q - 1, r: coord.r + 1 }
+    return this.getSpacesAway(coord, 1)
+  }
+
+
+  getSpacesAway(coord: AxialCoord, spaces: number): AxialCoord[] {
+    const potentialSpaces = [
+      { q: coord.q + spaces, r: coord.r },
+      { q: coord.q - spaces, r: coord.r },
+      { q: coord.q, r: coord.r + spaces },
+      { q: coord.q, r: coord.r - spaces },
+      { q: coord.q + spaces, r: coord.r - spaces },
+      { q: coord.q - spaces, r: coord.r + spaces }
     ];
 
-    return neighbors.filter(n => this.isValidCell(n));
+    return potentialSpaces.filter(n => this.isValidCell(n));
   }
 
   getPiecesByColor(color: PlayerColor): Piece[] {

@@ -29,15 +29,6 @@ export class Wanderer extends Piece {
     return chosenTarget !== undefined ? [chosenTarget] : [];
   }
 
-  useAbility(board: Board, targets: AxialCoord[]): boolean {
-    if (targets.length !== 1) {
-      return false;
-    }
-    console.log(`Wanderer useAbility: ${JSON.stringify(targets)}`);
-    board.movePiece(this.position, targets[0]);
-    return true
-  }
-
   hasActiveAbility(): boolean {
     return true;
   }
