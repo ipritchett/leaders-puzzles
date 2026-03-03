@@ -8,7 +8,7 @@ function getLandingSpots(board: Board, from: AxialCoord): AxialCoord[] {
     .map(coord => {
       const direction = board.getDirection(from, coord);
       const nextSpace = { q: coord.q + direction.q, r: coord.r + direction.r };
-      if (!board.isValidCell(nextSpace) || board.isOccupied(nextSpace)) return null;
+      if (!board.isValidDestination(nextSpace)) return null;
       return nextSpace;
     })
     .filter((c): c is AxialCoord => c !== null);

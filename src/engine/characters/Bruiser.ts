@@ -28,7 +28,7 @@ export class Bruiser extends Piece {
       return [];
     }
     const validEnemyDestinations = board.getNeighbors(chosenEnemyPosition)
-      .filter(coord => board.isValidCell(coord) && !board.isOccupied(coord))
+      .filter(coord => board.isValidDestination(coord))
       // Bruiser must push to opposite side (cannot push to cells adjacent to its starting position)
       .filter(coord => !board.getNeighbors(this.position).some(n => n.q === coord.q && n.r === coord.r))
       // Bruiser cannot push to its starting position

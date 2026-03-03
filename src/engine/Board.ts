@@ -43,6 +43,10 @@ export class Board {
     return this.validCells.has(this.coordToString(coord));
   }
 
+  isValidDestination(coord: AxialCoord): boolean { 
+    return this.isValidCell(coord) && !this.isOccupied(coord);
+  }
+
   getAllValidCells(): AxialCoord[] {
     return Array.from(this.validCells).map(str => this.stringToCoord(str));
   }
