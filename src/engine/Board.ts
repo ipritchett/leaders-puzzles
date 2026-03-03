@@ -1,6 +1,7 @@
-import type { AxialCoord } from './types.js';
+import type { AxialCoord} from './types.js';
 import type { Piece } from './Piece.js';
 import type { PlayerColor } from './types.js';
+import { PlayerColor as PlayerColorConst } from './types.js';
 
 const DIRECTIONS: AxialCoord[] = [
   { q: 0, r: -1 },
@@ -42,21 +43,30 @@ export class Board {
     return this.validCells.has(this.coordToString(coord));
   }
 
+  isValidDestination(coord: AxialCoord): boolean { 
+    return this.isValidCell(coord) && !this.isOccupied(coord);
+  }
+
   getAllValidCells(): AxialCoord[] {
     return Array.from(this.validCells).map(str => this.stringToCoord(str));
   }
 
   getNeighbors(coord: AxialCoord): AxialCoord[] {
-    const neighbors: AxialCoord[] = [
-      { q: coord.q + 1, r: coord.r },
-      { q: coord.q - 1, r: coord.r },
-      { q: coord.q, r: coord.r + 1 },
-      { q: coord.q, r: coord.r - 1 },
-      { q: coord.q + 1, r: coord.r - 1 },
-      { q: coord.q - 1, r: coord.r + 1 }
+    return this.getSpacesAway(coord, 1)
+  }
+
+
+  getSpacesAway(coord: AxialCoord, spaces: number): AxialCoord[] {
+    const potentialSpaces = [
+      { q: coord.q + spaces, r: coord.r },
+      { q: coord.q - spaces, r: coord.r },
+      { q: coord.q, r: coord.r + spaces },
+      { q: coord.q, r: coord.r - spaces },
+      { q: coord.q + spaces, r: coord.r - spaces },
+      { q: coord.q - spaces, r: coord.r + spaces }
     ];
 
-    return neighbors.filter(n => this.isValidCell(n));
+    return potentialSpaces.filter(n => this.isValidCell(n));
   }
 
   getPiecesByColor(color: PlayerColor): Piece[] {
@@ -70,6 +80,13 @@ export class Board {
   getPieceAt(coord: AxialCoord): Piece | null {
     const key = this.coordToString(coord);
     return this.occupancy.get(key) || null;
+  }
+
+  getEnemyPieces(color: PlayerColor): Piece[] {
+    if (color === PlayerColorConst.White) {
+      return this.getPiecesByColor(PlayerColorConst.Black);
+    }
+    return this.getPiecesByColor(PlayerColorConst.White);
   }
 
   getDirection(from: AxialCoord, to: AxialCoord): AxialCoord {

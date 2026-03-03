@@ -15,13 +15,37 @@ export class Manipulator extends Piece {
     return '🦮';
   }
 
-  *getValidAbilityTargets(_board: Board): AbilityTargetsGenerator {
-    yield [];
-    return [];
+  *getValidAbilityTargets(board: Board): AbilityTargetsGenerator {
+    const myNeighbors = board.getNeighbors(this.position);
+    const visibleEnemyPositions = board.getVisiblePieces(this.position)
+     .filter(piece => piece.color !== this.color).map(piece => piece.position)
+     .filter(position => !myNeighbors.some(n => n.q === position.q && n.r === position.r));
+    const chosenEnemyPosition = yield visibleEnemyPositions;
+    if (chosenEnemyPosition === undefined) {
+      return [];
+    }
+    const validEnemyDestinations = board.getNeighbors(chosenEnemyPosition)
+      .filter(coord => board.isValidDestination(coord))
+
+    const chosenEnemyDestination = yield validEnemyDestinations;
+    if (chosenEnemyDestination === undefined) {
+      return [chosenEnemyPosition];
+    }
+    return [chosenEnemyPosition, chosenEnemyDestination];
   }
 
-  useAbility(_board: Board, _targets?: AxialCoord[]): boolean {
-    // Not implemented yet
-    return false;
+  useAbility(board: Board, targets: AxialCoord[]): boolean {
+    if (targets === undefined || targets.length !== 2) {
+      return false;
+    }
+    const [from, to] = targets;
+    const enemy = board.getPieceAt(from);
+    if (!enemy) return false;
+    board.movePiece(from, to);
+    return true;
+  }
+
+  hasActiveAbility(): boolean {
+    return true;
   }
 }

@@ -44,7 +44,14 @@ export abstract class Piece {
 
   abstract getEmoji(): string;
 
-  abstract useAbility(board: Board, targets?: AxialCoord[]): boolean;
+  // Default implementation for a piece with a single-target space ability
+  useAbility(board: Board, targets: AxialCoord[]): boolean {
+    if (targets.length !== 1) {
+      return false;
+    }
+    board.movePiece(this.position, targets[0]);
+    return true;
+  }
 
   hasActiveAbility(): boolean {
     return false;

@@ -28,7 +28,7 @@ export class Brewmaster extends Piece {
       return [];
     }
     const validAllyDestinations = board.getNeighbors(chosenAllyPosition)
-      .filter(coord => board.isValidCell(coord) && !board.isOccupied(coord));
+      .filter(coord => board.isValidDestination(coord));
     const chosenDestination = yield validAllyDestinations;
     return chosenDestination !== undefined
       ? [chosenAllyPosition, chosenDestination]
