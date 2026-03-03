@@ -15,13 +15,38 @@ export class Illusionist extends Piece {
     return '🪄';
   }
 
-  *getValidAbilityTargets(_board: Board): AbilityTargetsGenerator {
-    yield [];
-    return [];
+  *getValidAbilityTargets(board: Board): AbilityTargetsGenerator {
+    const myNeighbors = board.getNeighbors(this.position);
+    const validTargets = board.getVisiblePieces(this.position)
+     .map(piece => piece.position)
+     .filter(position => !myNeighbors.some(n => n.q === position.q && n.r === position.r));
+
+    const chosenTarget = yield validTargets;
+    if (chosenTarget === undefined) {
+      return [];
+    }
+    console.log(`Illusionist chosen target: ${chosenTarget.q}, ${chosenTarget.r}`);
+    // From, to. swap places.
+    return [chosenTarget, this.position];
+    
   }
 
-  useAbility(_board: Board, _targets?: AxialCoord[]): boolean {
-    // Not implemented yet
-    return false;
+  useAbility(board: Board, targets: AxialCoord[]): boolean {
+    if (targets.length !== 2) {
+      return false;
+    }
+    const [from, to] = targets;
+    console.log(`Illusionist useAbility: ${from.q}, ${from.r} -> ${to.q}, ${to.r}`);
+    const piece = board.getPieceAt(from);
+    if (!piece) return false;
+    board.removePiece(from);
+    board.movePiece(to, from);
+    piece.position = to;
+    board.placePiece(piece, to);
+    return true;
+  }
+
+  hasActiveAbility(): boolean {
+    return true;
   }
 }
