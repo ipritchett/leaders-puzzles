@@ -25,8 +25,7 @@ export class Illusionist extends Piece {
     if (chosenTarget === undefined) {
       return [];
     }
-    console.log(`Illusionist chosen target: ${chosenTarget.q}, ${chosenTarget.r}`);
-    // From, to. swap places.
+    // From, and to. We will swap these positions.
     return [chosenTarget, this.position];
     
   }
@@ -36,7 +35,6 @@ export class Illusionist extends Piece {
       return false;
     }
     const [from, to] = targets;
-    console.log(`Illusionist useAbility: ${from.q}, ${from.r} -> ${to.q}, ${to.r}`);
     const piece = board.getPieceAt(from);
     if (!piece) return false;
     board.removePiece(from);

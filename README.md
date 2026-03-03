@@ -20,7 +20,24 @@ Each piece displays its class acronym (e.g., "L" for Leader, "B" for Bruiser) as
 
 ## TODOS
 
-* Implement individual character classes
+* Implement individual character classes:
+    [x] Acrobat
+    [] Archer
+    [x] Assassin
+    [x] Brewmaster
+    [x] Bruiser
+    [x] Claw Launcher
+    [] Hermit & Cub
+    [x] Illusionist
+    [] Jailer
+    [x] Leader
+    [x] Manipulator
+    [] Nemesis
+    [] Protector
+    [x] Rider
+    [x] Royal Guard
+    [] Vizier
+    [x] Wanderer
 * Prevent user from taking an illegal move
 * Allow user to copy the notation to their solution to the puzzle when they end their turn or win
 * Implement non-dev graphics
