@@ -15,13 +15,30 @@ export class RoyalGuard extends Piece {
     return '🛡️'
   }
 
-  *getValidAbilityTargets(_board: Board): AbilityTargetsGenerator {
-    yield [];
-    return [];
+  *getValidAbilityTargets(board: Board): AbilityTargetsGenerator {
+    const alliedPieces = board.getPiecesByColor(this.color);
+    const alliedLeader = alliedPieces.filter(p => p.isLeader)[0];
+    const validTeleportTargets = board.getNeighbors(alliedLeader.position).filter(coord => !board.isOccupied(coord));
+    const teleportSpace = yield validTeleportTargets;
+    if (teleportSpace === undefined) {
+      return [];
+    }
+    const moveSpace = yield board.getNeighbors(teleportSpace).filter(coord => !board.isOccupied(coord));
+    if (moveSpace === undefined) {
+      return [teleportSpace];
+    }
+    return [moveSpace];
   }
 
-  useAbility(_board: Board, _targets?: AxialCoord[]): boolean {
-    // Not implemented yet
-    return false;
+  useAbility(board: Board, targets: AxialCoord[]): boolean {
+    if (targets.length !== 1) {
+      return false;
+    }
+    board.movePiece(this.position, targets[0]);
+    return true;
+  }
+
+  hasActiveAbility(): boolean {
+    return true;
   }
 }
