@@ -1,6 +1,7 @@
 import type { AxialCoord} from './types.js';
 import type { Piece } from './Piece.js';
 import type { PlayerColor } from './types.js';
+import { PlayerColor as PlayerColorConst } from './types.js';
 
 const DIRECTIONS: AxialCoord[] = [
   { q: 0, r: -1 },
@@ -73,10 +74,10 @@ export class Board {
   }
 
   getEnemyPieces(color: PlayerColor): Piece[] {
-    if (color === PlayerColor.White) {
-      return Array.from(this.occupancy.values()).filter(piece => piece.color === PlayerColor.Black);
+    if (color === PlayerColorConst.White) {
+      return this.getPiecesByColor(PlayerColorConst.Black);
     }
-    return Array.from(this.occupancy.values()).filter(piece => piece.color === PlayerColor.White);
+    return this.getPiecesByColor(PlayerColorConst.White);
   }
 
   getDirection(from: AxialCoord, to: AxialCoord): AxialCoord {

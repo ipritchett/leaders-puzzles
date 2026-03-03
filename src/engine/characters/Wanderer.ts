@@ -17,25 +17,28 @@ export class Wanderer extends Piece {
 
   *getValidAbilityTargets(board: Board): AbilityTargetsGenerator {
     const enemyPieces = board.getEnemyPieces(this.color);
-    const adjacentToEnemy = new Set<AxialCoord>();
+    const adjacentToEnemy = new Set<string>();
     enemyPieces.forEach(piece => {
       const neighbors = board.getNeighbors(piece.position);
       neighbors.forEach(neighbor => {
-          adjacentToEnemy.add(neighbor);
+          adjacentToEnemy.add(`${neighbor.q},${neighbor.r}`);
       })
     })
-    return board.getAllValidCells().filter(cell => cell !== this.position && !board.isOccupied(cell) && !adjacentToEnemy.has(cell));
+    const validTargets = board.getAllValidCells().filter(cell => cell !== this.position && !board.isOccupied(cell) && !adjacentToEnemy.has(`${cell.q},${cell.r}`));
+    const chosenTarget = yield validTargets;
+    return chosenTarget !== undefined ? [chosenTarget] : [];
   }
 
   useAbility(board: Board, targets: AxialCoord[]): boolean {
     if (targets.length !== 1) {
       return false;
     }
+    console.log(`Wanderer useAbility: ${JSON.stringify(targets)}`);
     board.movePiece(this.position, targets[0]);
     return true
   }
 
-  hasAbilityImplemented(): boolean {
+  hasActiveAbility(): boolean {
     return true;
   }
 }
