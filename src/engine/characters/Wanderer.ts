@@ -15,13 +15,27 @@ export class Wanderer extends Piece {
     return '🪽'
   }
 
-  *getValidAbilityTargets(_board: Board): AbilityTargetsGenerator {
-    yield [];
-    return [];
+  *getValidAbilityTargets(board: Board): AbilityTargetsGenerator {
+    const enemyPieces = board.getEnemyPieces(this.color);
+    const adjacentToEnemy = new Set<AxialCoord>();
+    enemyPieces.forEach(piece => {
+      const neighbors = board.getNeighbors(piece.position);
+      neighbors.forEach(neighbor => {
+          adjacentToEnemy.add(neighbor);
+      })
+    })
+    return board.getAllValidCells().filter(cell => cell !== this.position && !board.isOccupied(cell) && !adjacentToEnemy.has(cell));
   }
 
-  useAbility(_board: Board, _targets?: AxialCoord[]): boolean {
-    // Not implemented yet
-    return false;
+  useAbility(board: Board, targets: AxialCoord[]): boolean {
+    if (targets.length !== 1) {
+      return false;
+    }
+    board.movePiece(this.position, targets[0]);
+    return true
+  }
+
+  hasAbilityImplemented(): boolean {
+    return true;
   }
 }

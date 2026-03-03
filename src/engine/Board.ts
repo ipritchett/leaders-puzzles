@@ -1,4 +1,4 @@
-import type { AxialCoord } from './types.js';
+import type { AxialCoord} from './types.js';
 import type { Piece } from './Piece.js';
 import type { PlayerColor } from './types.js';
 
@@ -70,6 +70,13 @@ export class Board {
   getPieceAt(coord: AxialCoord): Piece | null {
     const key = this.coordToString(coord);
     return this.occupancy.get(key) || null;
+  }
+
+  getEnemyPieces(color: PlayerColor): Piece[] {
+    if (color === PlayerColor.White) {
+      return Array.from(this.occupancy.values()).filter(piece => piece.color === PlayerColor.Black);
+    }
+    return Array.from(this.occupancy.values()).filter(piece => piece.color === PlayerColor.White);
   }
 
   getDirection(from: AxialCoord, to: AxialCoord): AxialCoord {
