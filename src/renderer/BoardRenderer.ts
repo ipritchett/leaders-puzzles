@@ -2,9 +2,11 @@ import type { AxialCoord } from '../engine/types.js';
 import { PlayerColor } from '../engine/types.js';
 import type { Game } from '../engine/Game.js';
 import type { Piece } from '../engine/Piece.js';
+import { CoordinateMapper } from '../engine/CoordinateMapper.js';
 
 const CELL_RADIUS_FACTOR = 0.42;
-const PIECE_RADIUS_FACTOR = 0.95;
+const PIECE_RADIUS_FACTOR = 0.85;
+const HIGHLIGHT_RING_OUTER_FACTOR = 1.1;
 
 export class BoardRenderer {
   private canvas: HTMLCanvasElement;
@@ -267,6 +269,34 @@ export class BoardRenderer {
     this.ctx.lineWidth = 1.5;
     this.ctx.stroke();
 
+    // For highlighted cells, draw an outer ring so the highlight stays visible when a piece occupies the cell
+    if (highlight !== 'none') {
+      const pieceRadius = this.cellRadius * PIECE_RADIUS_FACTOR;
+      const ringInner = pieceRadius + 2;
+      const ringOuter = this.cellRadius * HIGHLIGHT_RING_OUTER_FACTOR;
+      const ringGradient = this.ctx.createRadialGradient(x, y - 3, ringInner, x, y, ringOuter);
+      if (highlight === 'move') {
+        ringGradient.addColorStop(0, '#90c890');
+        ringGradient.addColorStop(1, '#6ba86b');
+      } else if (highlight === 'ability') {
+        ringGradient.addColorStop(0, '#d4a070');
+        ringGradient.addColorStop(1, '#c87840');
+      } else {
+        ringGradient.addColorStop(0, '#e0d070');
+        ringGradient.addColorStop(1, '#c4a830');
+      }
+      this.ctx.fillStyle = ringGradient;
+      this.ctx.beginPath();
+      this.ctx.arc(x, y, ringOuter, 0, Math.PI * 2);
+      this.ctx.arc(x, y, ringInner, Math.PI * 2, 0);
+      this.ctx.fill('evenodd');
+      this.ctx.strokeStyle = strokeColor;
+      this.ctx.lineWidth = 2;
+      this.ctx.beginPath();
+      this.ctx.arc(x, y, ringOuter, 0, Math.PI * 2);
+      this.ctx.stroke();
+    }
+
     // Add subtle inner shadow for inset effect
     this.ctx.save();
     this.ctx.globalAlpha = 0.15;
@@ -274,6 +304,27 @@ export class BoardRenderer {
     this.ctx.beginPath();
     this.ctx.arc(x, y - 2, this.cellRadius * 0.85, 0, Math.PI * 2);
     this.ctx.fill();
+    this.ctx.restore();
+  }
+
+  private drawDebugLabels(coords: AxialCoord[]): void {
+    this.ctx.save();
+    this.ctx.font = `bold 10px monospace`;
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+    const strokeWidth = 2.5;
+    this.ctx.lineWidth = strokeWidth;
+    this.ctx.strokeStyle = '#000';
+    this.ctx.fillStyle = '#fff';
+    for (const coord of coords) {
+      const { x, y } = this.axialToPixel(coord);
+      const notation = CoordinateMapper.toAlphanumeric(coord) ?? '—';
+      const axialStr = `(${coord.q},${coord.r})`;
+      for (const [text, py] of [[notation, y - 6], [axialStr, y + 6]] as const) {
+        this.ctx.strokeText(text, x, py);
+        this.ctx.fillText(text, x, py);
+      }
+    }
     this.ctx.restore();
   }
 
@@ -393,8 +444,9 @@ export class BoardRenderer {
     return this.pixelToAxial(x, y);
   }
 
-  render(game: Game): void {
+  render(game: Game, options?: { debug?: boolean }): void {
     const uiState = game.getUIState();
+    const debug = options?.debug ?? false;
 
     // Update dimensions on first render or when window resizes
     // This ensures we have game data to calculate proper bounds
@@ -479,6 +531,11 @@ export class BoardRenderer {
         isCurrentPlayer,
         { x: uiState.cursorPixelX, y: uiState.cursorPixelY }
       );
+    }
+
+    // Debug labels on top so they're visible even when a piece occupies the space
+    if (debug) {
+      this.drawDebugLabels(allCells);
     }
   }
 

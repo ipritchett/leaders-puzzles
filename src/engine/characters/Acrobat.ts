@@ -56,7 +56,7 @@ export class Acrobat extends Piece {
     return true;
   }
 
-  hasAbilityImplemented(): boolean {
+  hasActiveAbility(): boolean {
     return true;
   }
 }

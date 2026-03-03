@@ -15,6 +15,18 @@ export class Archer extends Piece {
     return '🏹';
   }
 
+  threatTo(target: AxialCoord): number {
+    const qDifference = Math.abs(target.q - this.position.q);
+    const rDifference = Math.abs(target.r - this.position.r);
+    if (qDifference === 2 && (rDifference === 0 || rDifference === 2)) {
+      return 1;
+    }
+    if (rDifference === 2 && (qDifference === 0 || qDifference === 2)) {
+      return 1;
+    }
+    return 0;
+  }
+
   *getValidAbilityTargets(_board: Board): AbilityTargetsGenerator {
     yield [];
     return [];

@@ -11,8 +11,11 @@ export class Assassin extends Piece {
     return 'As';
   }
 
-  getCapturePower(): number {
-    return 2;
+  threatTo(target: AxialCoord): number {
+    if (Math.abs(this.position.q - target.q) * Math.abs(this.position.r - target.r) <= 1) {
+      return 2;
+    }
+    return 0;
   }
 
   getEmoji(): string {

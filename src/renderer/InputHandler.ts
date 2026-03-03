@@ -71,7 +71,7 @@ export class InputHandler {
       const isClickOnSelectedPiece =
         coord.q === uiState.selectedPiece.position.q &&
         coord.r === uiState.selectedPiece.position.r;
-      if (isClickOnSelectedPiece && uiState.selectedPiece.hasAbilityImplemented()) {
+      if (isClickOnSelectedPiece && uiState.selectedPiece.hasActiveAbility()) {
         this.game.setActionMode('ability');
         this.onStateChange();
         return;

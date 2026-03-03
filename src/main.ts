@@ -60,6 +60,13 @@ function main() {
     throw new Error('Reset board button not found');
   }
 
+  const debugBtn = document.getElementById('debugBtn') as HTMLButtonElement;
+  if (!debugBtn) {
+    throw new Error('Debug button not found');
+  }
+
+  let debugView = false;
+
   // Initialize game
   const game = new Game();
   const renderer = new BoardRenderer(canvas);
@@ -83,6 +90,13 @@ function main() {
     render();
   });
 
+  debugBtn.addEventListener('click', () => {
+    debugView = !debugView;
+    debugBtn.classList.toggle('active', debugView);
+    debugBtn.textContent = debugView ? 'Debug (on)' : 'Debug';
+    render();
+  });
+
   // Set up reset board button
   resetBoardBtn.addEventListener('click', () => {
     const notation = notationTextInput.value.trim();
@@ -103,7 +117,7 @@ function main() {
 
   // Render function
   function render() {
-    renderer.render(game);
+    renderer.render(game, { debug: debugView });
     
     // Update notation display
     if (currentNotation) {
@@ -116,7 +130,7 @@ function main() {
       if (actionButtons) {
         actionButtons.classList.remove('hidden');
       }
-      const canUseAbility = selectedPiece.hasAbilityImplemented();
+      const canUseAbility = selectedPiece.hasActiveAbility();
       toggleTargetsBtn.disabled = !canUseAbility;
       const isMoveMode = game.getActionMode() === 'move';
       toggleTargetsBtn.textContent = isMoveMode
