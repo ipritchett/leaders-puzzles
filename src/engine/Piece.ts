@@ -65,11 +65,10 @@ export abstract class Piece {
   }
 
   isMoveable(board: Board): boolean {
-    const neighborsProtector = !board.getNeighbors(this.position).some((coord) => {
+    return neighborsProtector = !board.getNeighbors(this.position).some((coord) => {
       const neighbor = board.getPieceAt(coord)
       return neighbor !== null && neighbor.color === this.color && neighbor.getAcronym() === 'P'
     })
-    return neighborsProtector
   }
 
 }
