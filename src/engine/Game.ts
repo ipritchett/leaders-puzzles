@@ -342,11 +342,7 @@ export class Game {
     const from = this.uiState.selectedPiece.position;
     this.board.movePiece(from, target);
     this.uiState.selectedPiece.position = target;
-    if (this.uiState.selectedPiece.numberOfMoves > 1) {
-      this.uiState.selectedPiece.numberOfMoves--;
-    } else {
-      this.movedPieces.add(this.uiState.selectedPiece.id);
-    }
+    this.movedPieces.add(this.uiState.selectedPiece.id);
     this.clearAbilityFlow();
     this.uiState.clear();
 
