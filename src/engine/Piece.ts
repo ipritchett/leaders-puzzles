@@ -65,13 +65,10 @@ export abstract class Piece {
   }
 
   isMoveable(board: Board): boolean {
-    console.log(`Checking moveability for ${this.getAcronym()}`)
     const neighborsProtector = !board.getNeighbors(this.position).some((coord) => {
       const neighbor = board.getPieceAt(coord)
       return neighbor !== null && neighbor.color === this.color && neighbor.getAcronym() === 'P'
     })
-
-    console.log(neighborsProtector)
     return neighborsProtector
   }
 
