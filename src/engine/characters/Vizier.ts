@@ -15,14 +15,6 @@ export class Vizier extends Piece {
     return '📜'
   }
 
-  // Called at the start of every turn.
-  affectPieces(board: Board): void {
-    const alliedLeader = board.getAlliedLeader(this.color);
-    if (alliedLeader) {
-      alliedLeader.numberOfMoves = 2;
-    }
-  }
-
   *getValidAbilityTargets(_board: Board): AbilityTargetsGenerator {
     yield [];
     return [];

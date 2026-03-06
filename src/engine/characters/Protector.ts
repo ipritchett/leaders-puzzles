@@ -25,14 +25,4 @@ export class Protector extends Piece {
     return false;
   }
 
-  affectPieces(board: Board): void {
-    this.isMoveable = false;
-    const neighbors = board.getNeighbors(this.position);
-    neighbors.forEach(coord => {
-      const piece = board.getPieceAt(coord);
-      if (piece && piece.color === this.color) {
-        piece.isMoveable = false;
-      }
-    });
-  }
 }

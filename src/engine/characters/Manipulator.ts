@@ -18,7 +18,7 @@ export class Manipulator extends Piece {
   *getValidAbilityTargets(board: Board): AbilityTargetsGenerator {
     const myNeighbors = board.getNeighbors(this.position);
     const visibleEnemyPositions = board.getVisiblePieces(this.position)
-     .filter(piece => piece.color !== this.color && piece.isMoveable)
+     .filter(piece => { return piece.color !== this.color && piece.isMoveable(board)})
      .map(piece => piece.position)
      .filter(position => !myNeighbors.some(n => n.q === position.q && n.r === position.r));
     const chosenEnemyPosition = yield visibleEnemyPositions;

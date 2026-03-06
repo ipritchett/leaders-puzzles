@@ -110,8 +110,6 @@ export class Game {
     } else {
       this.initializePieces();
     }
-    // Instantiate the board with correct effects.
-    this.pieces.forEach(piece => piece.affectPieces(this.board));
   }
 
   private initializePieces(): void {
@@ -399,8 +397,6 @@ export class Game {
 
   endTurn(): void {
     // First reset all status effects, THEN affect all pieces.
-    this.pieces.forEach(piece => piece.resetPiece());
-    this.pieces.forEach(piece => piece.affectPieces(this.board));
     this.currentTurn = this.currentTurn === PlayerColor.White 
       ? PlayerColor.Black 
       : PlayerColor.White;
@@ -532,8 +528,5 @@ export class Game {
     } else {
       this.initializePieces();
     }
-    // Reset the board with correct effects.
-    this.pieces.forEach(piece => piece.resetPiece());
-    this.pieces.forEach(piece => piece.affectPieces(this.board));
   }
 }

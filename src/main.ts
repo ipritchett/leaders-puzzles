@@ -130,7 +130,7 @@ function main() {
       if (actionButtons) {
         actionButtons.classList.remove('hidden');
       }
-      const isJailed = !selectedPiece.canUseAbility;
+      const isJailed = !selectedPiece.canUseAbility(game.board);
       const canUseAbility = selectedPiece.hasActiveAbility() && !isJailed;
       toggleTargetsBtn.disabled = !canUseAbility;
       const isMoveMode = game.getActionMode() === 'move';
