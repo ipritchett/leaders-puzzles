@@ -392,7 +392,6 @@ export class Game {
   }
 
   endTurn(): void {
-    // First reset all status effects, THEN affect all pieces.
     this.currentTurn = this.currentTurn === PlayerColor.White 
       ? PlayerColor.Black 
       : PlayerColor.White;
