@@ -95,6 +95,7 @@ export class Game {
   private abilityGenerator: AbilityTargetsGenerator | null = null;
   private currentAbilityTargets: AxialCoord[] = [];
   private abilityTargetsChosenSoFar: AxialCoord[] = [];
+  private turnHistory: string[] = [];
 
   constructor(notation?: string) {
     this.board = new Board();
@@ -106,13 +107,15 @@ export class Game {
     this.winner = null;
 
     if (notation) {
-      this.loadFromNotation(notation);
+      this.loadFromNotation(notation, true);
     } else {
       this.initializePieces();
     }
   }
 
   private initializePieces(): void {
+
+    this.turnHistory = []
     // White pieces (top rows)
     const whitePositions: AxialCoord[] = [
       { q: 0, r: -3 },
@@ -170,6 +173,8 @@ export class Game {
         console.error(`Error creating black piece at index ${index}:`, error);
       }
     });
+
+    this.recordTurnHistory()
   }
 
   private getRandomCharacterClasses(): (new (id: string, color: PlayerColor, position: AxialCoord) => Piece)[] {
@@ -312,15 +317,20 @@ export class Game {
   private executeAbility(targets: AxialCoord[]): boolean {
     const piece = this.uiState.selectedPiece;
     if (!piece || this.movedPieces.has(piece.id)) return false;
+    this.board.turnMoves.push(`${piece.getAcronym()} (ability): `)
     const ok = piece.useAbility(this.board, targets);
     if (ok) {
       this.movedPieces.add(piece.id);
       this.uiState.clear();
+      this.turnHistory.push(this.generateNotation())
       try {
         this.checkVictoryConditions();
       } catch (error) {
         console.error('Error checking victory conditions:', error);
       }
+    } else {
+      // Unsuccessful abilities won't show in turn move list.
+      this.board.turnMoves.pop()
     }
     return ok;
   }
@@ -339,13 +349,15 @@ export class Game {
       return false;
     }
 
-    const from = this.uiState.selectedPiece.position;
+    const selectedPiece = this.uiState.selectedPiece
+    const from = selectedPiece.position;
+    this.board.turnMoves.push(`${selectedPiece.getAcronym()} (move): `)
     this.board.movePiece(from, target);
-    this.uiState.selectedPiece.position = target;
-    this.movedPieces.add(this.uiState.selectedPiece.id);
+    selectedPiece.position = target;
+    this.movedPieces.add(selectedPiece.id);
     this.clearAbilityFlow();
     this.uiState.clear();
-
+    this.recordTurnHistory();
     // Check for victory conditions after move (don't let errors break the move)
     try {
       this.checkVictoryConditions();
@@ -411,7 +423,11 @@ export class Game {
     return this.pieces.find(p => p.color === color && p.isLeader);
   }
 
-  loadFromNotation(notation: string): void {
+  loadFromNotation(notation: string, reset: boolean = false): void {
+
+    if (reset) {
+      this.turnHistory = []
+    }
     // Clear existing pieces
     const allCells = this.board.getAllValidCells();
     for (const cell of allCells) {
@@ -463,6 +479,8 @@ export class Game {
         console.error(`Error creating black piece ${placement.acronym} at ${placement.position}:`, error);
       }
     });
+
+    this.recordTurnHistory()
   }
 
   /**
@@ -511,6 +529,8 @@ export class Game {
     // Reset game state
     this.currentTurn = PlayerColor.Black; // Start with Black's turn
     this.movedPieces.clear();
+    this.board.turnMoves = [];
+    this.turnHistory = [];
     this.uiState.clear();
     this.gameOver = false;
     this.winner = null;
@@ -519,9 +539,45 @@ export class Game {
     this.pieces.length = 0;
     
     if (notation) {
-      this.loadFromNotation(notation);
+      this.loadFromNotation(notation, true);
     } else {
       this.initializePieces();
     }
+  }
+
+  getTurnHistory(): string {
+    return this.turnHistory.toString()
+  }
+
+  getTurnMoves(): string {
+    let fullMoveList =  ""
+    this.board.turnMoves.forEach((move, index) => {
+      fullMoveList += `${index + 1}) ${move}\n`
+    })
+    return fullMoveList
+  }
+  
+  recordTurnHistory(): void { 
+    this.turnHistory.push(this.generateNotation())
+  }
+
+  undoLastAction(): void {
+    if (this.turnHistory.length <= 1 || this.board.turnMoves.length <= 0) return;
+    console.log({entryTurnHistory: this.turnHistory})
+    console.log({entryTurnMoves: this.board.turnMoves})
+    console.log({entryMovedPieces: this.movedPieces})
+    const returnState = this.turnHistory[this.turnHistory.length - 2];
+    const undoingPiece = this.board.turnMoves.pop()?.replace(RegExp(" \(.+\):.+"), "")
+    console.log({undoingPiece})
+    if (!undoingPiece) return
+    const lastActingPiece = this.board.getCharacterWithColor(undoingPiece, this.currentTurn)
+    if (lastActingPiece) {
+      this.movedPieces.delete(lastActingPiece.id)
+    }
+    this.turnHistory = this.turnHistory.slice(0, this.turnHistory.length - 2)
+    this.loadFromNotation(returnState)
+    console.log({newTurnHistory: this.turnHistory})
+    console.log({newTurnMoves: this.board.turnMoves})
+    console.log({newMovedPieces: this.movedPieces})
   }
 }

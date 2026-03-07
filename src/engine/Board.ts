@@ -2,6 +2,7 @@ import type { AxialCoord} from './types.js';
 import type { Piece } from './Piece.js';
 import type { PlayerColor } from './types.js';
 import { PlayerColor as PlayerColorConst } from './types.js';
+import { CoordinateMapper } from './CoordinateMapper.js';
 
 const DIRECTIONS: AxialCoord[] = [
   { q: 0, r: -1 },
@@ -15,6 +16,8 @@ const DIRECTIONS: AxialCoord[] = [
 export class Board {
   private validCells: Set<string>;
   private occupancy: Map<string, Piece>;
+  public turnMoves: string[] = []
+
 
   constructor() {
     this.validCells = new Set();
@@ -71,6 +74,11 @@ export class Board {
 
   getPiecesByColor(color: PlayerColor): Piece[] {
     return Array.from(this.occupancy.values()).filter(p => p.color === color);
+  }
+
+  // Another janky implementation since the engine don't currently enforce unique piece per team
+  getCharacterWithColor(character: string, color: PlayerColor): Piece | null {
+    return this.getPiecesByColor(color).filter((piece) => piece.getAcronym() === character)[0]
   }
 
   isOccupied(coord: AxialCoord): boolean {
@@ -142,6 +150,7 @@ export class Board {
     this.occupancy.delete(this.coordToString(from));
     this.occupancy.set(this.coordToString(to), piece);
     piece.position = to;
+    this.turnMoves[this.turnMoves.length - 1] += `${piece.getAcronym()} to ${CoordinateMapper.toAlphanumeric(to)}, `
   }
 
   removePiece(coord: AxialCoord): void {
