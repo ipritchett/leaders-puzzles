@@ -18,6 +18,7 @@ export class ClawLauncher extends Piece {
   *getValidAbilityTargets(board: Board): AbilityTargetsGenerator {
     const myNeighbors = board.getNeighbors(this.position);
     const visibleCharacterPositions = board.getVisiblePieces(this.position)
+     .filter(piece => piece.isMoveable(board)) // Ignore pieces that are not moveable.
      .map(piece => piece.position)
      // Ignore adjacent pieces
      .filter(position => !myNeighbors.some(n => n.q === position.q && n.r === position.r));

@@ -24,4 +24,5 @@ export class Jailer extends Piece {
     // Not implemented yet
     return false;
   }
+
 }

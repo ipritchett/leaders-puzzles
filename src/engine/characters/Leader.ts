@@ -16,6 +16,17 @@ export class Leader extends Piece {
     return '👑';
   }
 
+  getValidMoves(board: Board): AxialCoord[] {
+    // If there is a vizier on the team, a leader may move 2 times in a single action.
+    if (board.getPiecesByColor(this.color).some((piece) => piece.getAcronym() === 'V')) {
+      const onePieceAway = board.getNeighbors(this.position)
+      const twoPiecesAway = onePieceAway.map(coord => board.getNeighbors(coord)).flat()
+      return [...onePieceAway, ...twoPiecesAway].filter(coord => !board.isOccupied(coord));
+    }
+    const neighbors = board.getNeighbors(this.position);
+    return neighbors.filter(coord => !board.isOccupied(coord));
+  }
+
   *getValidAbilityTargets(_board: Board): AbilityTargetsGenerator {
     yield [];
     return [];
