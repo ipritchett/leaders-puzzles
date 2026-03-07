@@ -493,7 +493,7 @@ export class BoardRenderer {
     // Get selected piece and valid targets based on action mode
     const actionMode = game.getActionMode();
     const selectedPiece = game.getSelectedPiece();
-    const validMoveCoords = actionMode === 'move' && selectedPiece ? game.getValidMovesForSelected() : [];
+    const validMoveCoords = (actionMode === 'move' || actionMode === 'forced') && selectedPiece ? game.getValidMovesForSelected() : [];
     const validAbilityCoords = actionMode === 'ability' && selectedPiece ? game.getValidAbilityTargetsForSelected() : [];
     const abilityChosenSoFar = actionMode === 'ability' ? game.getAbilityTargetsChosenSoFar() : [];
 

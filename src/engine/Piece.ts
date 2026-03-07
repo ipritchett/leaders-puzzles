@@ -56,4 +56,19 @@ export abstract class Piece {
   hasActiveAbility(): boolean {
     return false;
   }
+
+  canUseAbility(board: Board): boolean {
+    return !board.getNeighbors(this.position).some((coord) => {
+      const neighbor = board.getPieceAt(coord)
+      return neighbor !== null && neighbor.getAcronym() === 'J' && neighbor.color !== this.color
+    })  
+  }
+
+  isMoveable(board: Board): boolean {
+    return !board.getNeighbors(this.position).some((coord) => {
+      const neighbor = board.getPieceAt(coord)
+      return neighbor !== null && neighbor.color === this.color && neighbor.getAcronym() === 'P'
+    })
+  }
+
 }

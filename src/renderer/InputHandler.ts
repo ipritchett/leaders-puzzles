@@ -71,7 +71,7 @@ export class InputHandler {
       const isClickOnSelectedPiece =
         coord.q === uiState.selectedPiece.position.q &&
         coord.r === uiState.selectedPiece.position.r;
-      if (isClickOnSelectedPiece && uiState.selectedPiece.hasActiveAbility()) {
+      if (isClickOnSelectedPiece && uiState.selectedPiece.hasActiveAbility() && uiState.selectedPiece.canUseAbility(this.game.board)) {
         this.game.setActionMode('ability');
         this.onStateChange();
         return;
@@ -89,6 +89,11 @@ export class InputHandler {
         }
         return;
       }
+    }
+
+    // Do not allow alternate piece selection if in forced mode
+    if (this.game.getActionMode() === 'forced') {
+      return
     }
 
     // Start selection, or clear selection if clicking empty / wrong piece
