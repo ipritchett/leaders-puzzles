@@ -160,6 +160,9 @@ function main() {
       toggleTargetsBtn.textContent = isMoveMode
         ? (isJailed ? 'Jailed!' : 'Show Ability Targets')
         : 'Show Move Targets';
+      if (game.getActionMode() === 'forced') {
+        toggleTargetsBtn.textContent = 'Must move currently selected piece.';
+      }
       toggleTargetsBtn.classList.toggle('mode-move', isMoveMode);
       toggleTargetsBtn.classList.toggle('mode-ability', !isMoveMode);
     } else {

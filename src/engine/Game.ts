@@ -44,7 +44,7 @@ const nonLeaderClasses = [
   Cub,
 ];
 
-export type ActionMode = 'move' | 'ability';
+export type ActionMode = 'move' | 'ability' | 'forced';
 
 // TODO: Move this to its own class
 export class UIState {
@@ -96,6 +96,7 @@ export class Game {
   private currentAbilityTargets: AxialCoord[] = [];
   private abilityTargetsChosenSoFar: AxialCoord[] = [];
   private turnHistory: string[] = [];
+  private hermitCubHistory: {hermit: boolean, cub: boolean} = {hermit: false, cub: false}
 
   constructor(notation?: string) {
     this.board = new Board();
@@ -317,12 +318,13 @@ export class Game {
   private executeAbility(targets: AxialCoord[]): boolean {
     const piece = this.uiState.selectedPiece;
     if (!piece || this.movedPieces.has(piece.id)) return false;
-    this.board.turnMoves.push(`${piece.getAcronym()} (ability): `)
+    this.board.turnMoves.push({ piece, source: 'ability', movedPieces: []})
     const ok = piece.useAbility(this.board, targets);
     if (ok) {
       this.movedPieces.add(piece.id);
       this.uiState.clear();
-      this.turnHistory.push(this.generateNotation())
+      this.recordTurnHistory()
+      this.checkForForced()
       try {
         this.checkVictoryConditions();
       } catch (error) {
@@ -351,13 +353,14 @@ export class Game {
 
     const selectedPiece = this.uiState.selectedPiece
     const from = selectedPiece.position;
-    this.board.turnMoves.push(`${selectedPiece.getAcronym()} (move): `)
+    this.board.turnMoves.push({ piece: selectedPiece, source: 'move', movedPieces: []})
     this.board.movePiece(from, target);
     selectedPiece.position = target;
     this.movedPieces.add(selectedPiece.id);
     this.clearAbilityFlow();
     this.uiState.clear();
     this.recordTurnHistory();
+    this.checkForForced();
     // Check for victory conditions after move (don't let errors break the move)
     try {
       this.checkVictoryConditions();
@@ -409,6 +412,9 @@ export class Game {
       : PlayerColor.White;
     this.movedPieces.clear();
     this.uiState.clear();
+    this.board.turnMoves = [];
+    this.turnHistory = [];
+
   }
 
   hasMovedThisTurn(pieceId: string): boolean {
@@ -552,7 +558,7 @@ export class Game {
   getTurnMoves(): string {
     let fullMoveList =  ""
     this.board.turnMoves.forEach((move, index) => {
-      fullMoveList += `${index + 1}) ${move}\n`
+      fullMoveList += `${index + 1}) ${move.piece.getAcronym()} (${move.source}): ${move.movedPieces.map((movedPiece) => `${movedPiece.piece.getAcronym()} to ${CoordinateMapper.toAlphanumeric(movedPiece.target)}`).join(', ')}\n`
     })
     return fullMoveList
   }
@@ -563,21 +569,48 @@ export class Game {
 
   undoLastAction(): void {
     if (this.turnHistory.length <= 1 || this.board.turnMoves.length <= 0) return;
-    console.log({entryTurnHistory: this.turnHistory})
-    console.log({entryTurnMoves: this.board.turnMoves})
-    console.log({entryMovedPieces: this.movedPieces})
     const returnState = this.turnHistory[this.turnHistory.length - 2];
-    const undoingPiece = this.board.turnMoves.pop()?.replace(RegExp(" \(.+\):.+"), "")
-    console.log({undoingPiece})
-    if (!undoingPiece) return
-    const lastActingPiece = this.board.getCharacterWithColor(undoingPiece, this.currentTurn)
+    const lastActingPiece = this.board.turnMoves.pop()?.piece
     if (lastActingPiece) {
       this.movedPieces.delete(lastActingPiece.id)
     }
+    // For some reason pop() wasn't working here.
     this.turnHistory = this.turnHistory.slice(0, this.turnHistory.length - 2)
     this.loadFromNotation(returnState)
-    console.log({newTurnHistory: this.turnHistory})
-    console.log({newTurnMoves: this.board.turnMoves})
-    console.log({newMovedPieces: this.movedPieces})
+  }
+
+
+  // Hermit / Cub and Nemesis carve-out. Checck last move to see if H/C or leader moved, then select the correct piece and put the game in "forced" mode.
+  checkForForced() {
+    const lastMovedPieces = this.board.turnMoves[this.board.turnMoves.length - 1].movedPieces
+    const leaderMoved = lastMovedPieces.some((movedPiece) => movedPiece.piece.getAcronym() === 'L')
+    const cubMoved = lastMovedPieces.some((movedPiece) => movedPiece.piece.getAcronym() === 'C')
+    const hermitMoved = lastMovedPieces.some((movedPiece) => movedPiece.piece.getAcronym() === 'H')
+    if (!leaderMoved && !cubMoved && !hermitMoved) {
+      return;
+    }
+
+    if ((this.hermitCubHistory.hermit && cubMoved) || (this.hermitCubHistory.cub && hermitMoved)) {
+      return;
+    }
+    
+    this.uiState.setActionMode('forced')
+    let targetPiece: Piece | undefined = undefined
+    if (leaderMoved) {
+      targetPiece = this.board.getEnemyPieces(this.currentTurn).find((piece) => piece.getAcronym() === 'N')
+    } else if (hermitMoved) {
+      this.hermitCubHistory.hermit = true
+      targetPiece = this.board.getPiecesByColor(this.currentTurn).find((piece) => piece.getAcronym() === 'C')
+    } else if (cubMoved) {
+      this.hermitCubHistory.cub = true
+      targetPiece = this.board.getPiecesByColor(this.currentTurn).find((piece) => piece.getAcronym() === 'H')
+    }
+
+    if (!targetPiece) {
+      console.error('No target piece found after forced move.')
+      this.uiState.setActionMode('move')
+      return
+    }
+    this.uiState.setSelectedPiece(targetPiece)
   }
 }
