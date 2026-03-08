@@ -90,7 +90,6 @@ export class CoordinateMapper {
     CoordinateMapper.alphanumericToAxial.set('G3', { q: 3, r: -2 });
     CoordinateMapper.alphanumericToAxial.set('G4', { q: 3, r: -3 });
 
-
     // Create reverse mapping
     for (const [alphanumeric, axial] of CoordinateMapper.alphanumericToAxial.entries()) {
       const key = `${axial.q},${axial.r}`;

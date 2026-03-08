@@ -68,7 +68,6 @@ export class Leader extends Piece {
     if (captured || surrounded) {
       // If this leader is captured/surrounded, the opposing team wins
       const winner = this.color === PlayerColor.White ? PlayerColor.Black : PlayerColor.White;
-      console.log(`Leader ${this.id} (${this.color}) victory check: captured=${captured}, surrounded=${surrounded}, winner=${winner}`);
       return winner;
     }
     return null;

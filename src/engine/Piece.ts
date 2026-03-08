@@ -19,7 +19,25 @@ export abstract class Piece {
 
   getValidMoves(board: Board): AxialCoord[] {
     const neighbors = board.getNeighbors(this.position);
-    return neighbors.filter(coord => !board.isOccupied(coord));
+    const availableSpaces = neighbors.filter(coord => !board.isOccupied(coord));
+
+    if (this.isLeader) {
+      return availableSpaces;
+    }
+    // Only check for surrounding the leader if we're not already adjacent to them
+    const isAdjacentToOwnLeader = neighbors
+      .map(n => board.getPieceAt(n))
+      .some(p => p !== null && p.isLeader && p.color === this.color);
+    if (isAdjacentToOwnLeader) {
+      return availableSpaces;
+    }
+    // Filter out moves that would surround the piece's leader
+    return availableSpaces.filter(
+      coord => !board.getNeighbors(coord)
+        .map(n => board.getPieceAt(n))
+        .filter((p): p is NonNullable<typeof p> => p !== null)
+        .some(p => p.isLeader && p.color === this.color && p.getValidMoves(board).length === 1)
+    );
   }
 
   threatTo(target: AxialCoord): number {

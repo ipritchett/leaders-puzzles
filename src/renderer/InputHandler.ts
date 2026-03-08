@@ -181,10 +181,10 @@ export class InputHandler {
     const selectedPiece = this.game.getSelectedPiece();
 
     if (selectedPiece) {
-      // Click on the selected piece itself: keep ability mode, do nothing
       const isClickOnSelectedPiece =
         coord.q === selectedPiece.position.q && coord.r === selectedPiece.position.r;
       if (isClickOnSelectedPiece) {
+        this.game.setActionMode('move');
         return;
       }
 

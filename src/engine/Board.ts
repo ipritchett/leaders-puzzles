@@ -45,6 +45,15 @@ export class Board {
     }
   }
 
+  /** Returns a shallow copy of the board (same piece refs). Used for simulating ability outcomes. */
+  clone(): Board {
+    const c = new Board();
+    for (const [k, v] of this.occupancy) {
+      c.occupancy.set(k, v);
+    }
+    return c;
+  }
+
   private coordToString(coord: AxialCoord): string {
     return `${coord.q},${coord.r}`;
   }
@@ -131,7 +140,6 @@ export class Board {
         current = target;
       }
     }
-    console.log(`Visible pieces: ${visiblePieces.map(p => `(${p.position.q}, ${p.position.r})`).join(', ')}`);
     return visiblePieces;
   }
 

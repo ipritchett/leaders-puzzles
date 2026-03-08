@@ -315,9 +315,36 @@ export class Game {
     this.abilityTargetsChosenSoFar = [];
   }
 
+  /**
+   * Simulates applying the ability with the given targets and returns true if the move is legal.
+   */
+  private isLegalMove(piece: Piece, targets: AxialCoord[]): boolean {
+    const savedPositions = new Map(this.pieces.map(p => [p.id, { ...p.position }]));
+    const boardClone = this.board.clone();
+    try {
+      const ok = piece.useAbility(boardClone, targets);
+      if (!ok) return false; // ability wouldn't apply, so no loss from it
+      const ourLeader = this.getLeader(piece.color);
+      if (!ourLeader || typeof (ourLeader as Leader).checkVictoryCondition !== 'function') {
+        return false;
+      }
+      const winner = (ourLeader as Leader).checkVictoryCondition(boardClone);
+      // Move is legal when our leader is not captured/surrounded (no loss)
+      return winner === null;
+    } finally {
+      for (const p of this.pieces) {
+        const pos = savedPositions.get(p.id);
+        if (pos) p.position = pos;
+      }
+    }
+  }
+
   private executeAbility(targets: AxialCoord[]): boolean {
     const piece = this.uiState.selectedPiece;
     if (!piece || this.movedPieces.has(piece.id)) return false;
+    if (!this.isLegalMove(piece, targets)) {
+      return false; // refuse to execute: would capture/surround our own leader
+    }
     this.board.turnMoves.push({ piece, source: 'ability', movedPieces: []})
     const ok = piece.useAbility(this.board, targets);
     if (ok) {
@@ -383,8 +410,6 @@ export class Game {
       return;
     }
 
-    console.log(`Checking victory conditions for ${leaders.length} leader(s)`);
-
     for (const leader of leaders) {
       // Check if this piece has the checkVictoryCondition method (more reliable than instanceof)
       const hasMethod = typeof (leader as any).checkVictoryCondition === 'function';
@@ -396,7 +421,6 @@ export class Game {
           if (winner) {
             this.gameOver = true;
             this.winner = winner;
-            console.log(`Victory condition triggered! ${winner} wins. Leader ${leader.id} (${leader.color}) is captured or surrounded.`);
             return;
           }
         } catch (error) {

@@ -25,11 +25,28 @@ export class RoyalGuard extends Piece {
     if (teleportSpace === undefined) {
       return [];
     }
-    const moveSpace = yield board.getNeighbors(teleportSpace).filter(coord => !board.isOccupied(coord));
+    const validSecondMoves = board.getNeighbors(teleportSpace).filter(coord => !board.isOccupied(coord));
+    // Allow clicking teleport space again to just teleport (no second move)
+    validSecondMoves.push(teleportSpace);
+    const moveSpace = yield validSecondMoves;
     if (moveSpace === undefined) {
       return [teleportSpace];
     }
-    return [moveSpace];
+    if (moveSpace.q === teleportSpace.q && moveSpace.r === teleportSpace.r) {
+      return [teleportSpace];
+    }
+    return [teleportSpace, moveSpace];
+  }
+
+  useAbility(board: Board, targets: AxialCoord[]): boolean {
+    if (targets.length < 1 || targets.length > 2) {
+      return false;
+    }
+    board.movePiece(this.position, targets[0]);
+    if (targets.length === 2) {
+      board.movePiece(targets[0], targets[1]);
+    }
+    return true;
   }
 
   hasActiveAbility(): boolean {

@@ -22,23 +22,27 @@ export class ClawLauncher extends Piece {
      .map(piece => piece.position)
      // Ignore adjacent pieces
      .filter(position => !myNeighbors.some(n => n.q === position.q && n.r === position.r));
-    console.log(`Visible non-adjacent pieces: ${visibleCharacterPositions.map(p => `(${p.q}, ${p.r})`).join(', ')}`);
     const chosenTarget = yield visibleCharacterPositions;
     if (chosenTarget === undefined) {
       return [];
     }
-    // Choose to pull target to me or me to target
     const direction = board.getDirection(this.position, chosenTarget);
-    const myNewPosition  = { q: chosenTarget.q - direction.q, r: chosenTarget.r - direction.r };
+    const myNewPosition = { q: chosenTarget.q - direction.q, r: chosenTarget.r - direction.r };
     const targetNewPosition = { q: this.position.q + direction.q, r: this.position.r + direction.r };
     const chosenDestination = yield [myNewPosition, targetNewPosition];
     if (chosenDestination === undefined) {
       return [];
     }
+    // When the two options are the same (one space between CL and target), always pull target toward CL
+    const oneSpaceCase =
+      myNewPosition.q === targetNewPosition.q && myNewPosition.r === targetNewPosition.r;
+    if (oneSpaceCase) {
+      return [chosenTarget, chosenDestination];
+    }
     if (chosenDestination.q === myNewPosition.q && chosenDestination.r === myNewPosition.r) {
       return [this.position, myNewPosition];
     }
-    return [chosenTarget, chosenDestination];
+    return [chosenTarget, targetNewPosition];
   }
 
   useAbility(board: Board, targets: AxialCoord[]): boolean {
