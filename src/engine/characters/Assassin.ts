@@ -12,7 +12,15 @@ export class Assassin extends Piece {
   }
 
   threatTo(target: AxialCoord): number {
-    if (Math.abs(this.position.q - target.q) * Math.abs(this.position.r - target.r) <= 1) {
+    const qDifference = Math.abs(this.position.q - target.q);
+    const rDifference = Math.abs(this.position.r - target.r);
+    if (qDifference === 1 && rDifference === 0) {
+      return 2;
+    }
+    if (qDifference === 0 && rDifference === 1) {
+      return 2;
+    }
+    if (qDifference === 1 && rDifference === 1) {
       return 2;
     }
     return 0;

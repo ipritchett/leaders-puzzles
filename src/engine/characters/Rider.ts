@@ -16,10 +16,10 @@ export class Rider extends Piece {
   }
 
   *getValidAbilityTargets(board: Board): AbilityTargetsGenerator {
-    // Filter out any destination 2 spaces away if the intermediate space (1 away in the same direction) is occupied
+    // Only empty spaces 2 away where the intermediate space (1 away) is also clear
     const twoSpacesAway = board.getSpacesAway(this.position, 2).filter(space => {
       const midpoint = { q: (this.position.q + space.q) / 2, r: (this.position.r + space.r) / 2 };
-      return !board.isOccupied(midpoint);
+      return !board.isOccupied(midpoint) && board.isValidDestination(space);
     });
     const target = yield twoSpacesAway;
     return target !== undefined ? [target] : [];

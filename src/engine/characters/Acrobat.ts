@@ -34,9 +34,9 @@ export class Acrobat extends Piece {
     if (chosenFirstJump === undefined) {
       return [];
     }
-    const validSecondJumps = getLandingSpots(board, chosenFirstJump);
-    // Because board state hasn't updated yet, acrobat still occupies its current position
-    //  and it won't be included as a valid target (which we would not want)
+    const validSecondJumps = getLandingSpots(board, chosenFirstJump)
+      // Second jump cannot return to start (same as not using the move at all)
+      .filter(coord => coord.q !== this.position.q || coord.r !== this.position.r);
     // Add position after first jump as a valid target to allow user to skip second jump
     validSecondJumps.push(chosenFirstJump);
     const chosenSecondJump = yield validSecondJumps;
