@@ -354,8 +354,11 @@ export class Game {
     const selectedPiece = this.uiState.selectedPiece
     const from = selectedPiece.position;
     this.board.turnMoves.push({ piece: selectedPiece, source: 'move', movedPieces: []})
-    this.board.movePiece(from, target);
-    selectedPiece.position = target;
+    // If the piece is staying in place (e.g. Hermit/Cub), skip the board move
+    if (from.q !== target.q || from.r !== target.r) {
+      this.board.movePiece(from, target);
+      selectedPiece.position = target;
+    }
     this.movedPieces.add(selectedPiece.id);
     this.clearAbilityFlow();
     this.uiState.clear();
@@ -582,10 +585,10 @@ export class Game {
 
   // Hermit / Cub and Nemesis carve-out. Checck last move to see if H/C or leader moved, then select the correct piece and put the game in "forced" mode.
   checkForForced() {
-    const lastMovedPieces = this.board.turnMoves[this.board.turnMoves.length - 1].movedPieces
-    const leaderMoved = lastMovedPieces.some((movedPiece) => movedPiece.piece.getAcronym() === 'L')
-    const cubMoved = lastMovedPieces.some((movedPiece) => movedPiece.piece.getAcronym() === 'C')
-    const hermitMoved = lastMovedPieces.some((movedPiece) => movedPiece.piece.getAcronym() === 'H')
+    const lastMove = this.board.turnMoves[this.board.turnMoves.length - 1]
+    const leaderMoved = lastMove.movedPieces.some((movedPiece) => movedPiece.piece.getAcronym() === 'L')
+    const cubMoved = lastMove.piece.getAcronym() === 'C'
+    const hermitMoved = lastMove.piece.getAcronym() === 'H'
     if (!leaderMoved && !cubMoved && !hermitMoved) {
       return;
     }

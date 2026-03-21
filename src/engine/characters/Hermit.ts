@@ -15,6 +15,11 @@ export class Hermit extends Piece {
     return '🧔';
   }
 
+  getValidMoves(board: Board): AxialCoord[] {
+    const neighbors = board.getNeighbors(this.position).filter(coord => !board.isOccupied(coord));
+    return [...neighbors, this.position]
+  }
+
   *getValidAbilityTargets(_board: Board): AbilityTargetsGenerator {
     yield [];
     return [];
