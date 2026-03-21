@@ -38,10 +38,12 @@ export class Illusionist extends Piece {
     const [from, to] = targets;
     const piece = board.getPieceAt(from);
     if (!piece) return false;
+    const placeHolder = board.getNeighbors(piece.position).filter((coord) => board.isValidDestination(coord))[0]
     board.removePiece(from);
     board.movePiece(to, from);
     piece.position = to;
-    board.placePiece(piece, to);
+    board.placePiece(piece, placeHolder);
+    board.movePiece(placeHolder, to)
     return true;
   }
 

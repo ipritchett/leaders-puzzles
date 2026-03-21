@@ -41,25 +41,24 @@ export class CoordinateMapper {
     
     // Column A (q=-3): 4 cells at rows 4, 5, 6, 7
     CoordinateMapper.alphanumericToAxial.set('A4', { q: -3, r: 0 });
-    CoordinateMapper.alphanumericToAxial.set('A5', { q: -3, r: -1 });
-    CoordinateMapper.alphanumericToAxial.set('A6', { q: -3, r: -2 });
-    CoordinateMapper.alphanumericToAxial.set('A7', { q: -3, r: -3 });
+    CoordinateMapper.alphanumericToAxial.set('A3', { q: -3, r: 1 });
+    CoordinateMapper.alphanumericToAxial.set('A2', { q: -3, r: 2 });
+    CoordinateMapper.alphanumericToAxial.set('A1', { q: -3, r: 3 });
 
     // Column B (q=-2): 5 cells at rows 1, 3, 4, 5, 6, 7
     CoordinateMapper.alphanumericToAxial.set('B1', { q: -2, r: 3 });
+    CoordinateMapper.alphanumericToAxial.set('B2', { q: -2, r: 2 });
     CoordinateMapper.alphanumericToAxial.set('B3', { q: -2, r: 1 });
     CoordinateMapper.alphanumericToAxial.set('B4', { q: -2, r: 0 });
     CoordinateMapper.alphanumericToAxial.set('B5', { q: -2, r: -1 });
-    CoordinateMapper.alphanumericToAxial.set('B6', { q: -2, r: -2 });
-    CoordinateMapper.alphanumericToAxial.set('B7', { q: -2, r: -3 });
 
     // Column C (q=-1): 6 cells at rows 2, 3, 4, 5, 6, 7
+    CoordinateMapper.alphanumericToAxial.set('C1', { q: -1, r: 3 });
     CoordinateMapper.alphanumericToAxial.set('C2', { q: -1, r: 2 });
     CoordinateMapper.alphanumericToAxial.set('C3', { q: -1, r: 1 });
     CoordinateMapper.alphanumericToAxial.set('C4', { q: -1, r: 0 });
     CoordinateMapper.alphanumericToAxial.set('C5', { q: -1, r: -1 });
     CoordinateMapper.alphanumericToAxial.set('C6', { q: -1, r: -2 });
-    CoordinateMapper.alphanumericToAxial.set('C7', { q: -1, r: -3 });
 
     // Column D (q=0): 7 cells at rows 1, 2, 3, 4, 5, 6, 7
     CoordinateMapper.alphanumericToAxial.set('D1', { q: 0, r: 3 });
@@ -71,27 +70,26 @@ export class CoordinateMapper {
     CoordinateMapper.alphanumericToAxial.set('D7', { q: 0, r: -3 });
 
     // Column E (q=1): 6 cells at rows 1, 2, 3, 4, 5, 6
-    CoordinateMapper.alphanumericToAxial.set('E1', { q: 1, r: 3 });
-    CoordinateMapper.alphanumericToAxial.set('E2', { q: 1, r: 2 });
-    CoordinateMapper.alphanumericToAxial.set('E3', { q: 1, r: 1 });
-    CoordinateMapper.alphanumericToAxial.set('E4', { q: 1, r: 0 });
-    CoordinateMapper.alphanumericToAxial.set('E5', { q: 1, r: -1 });
-    CoordinateMapper.alphanumericToAxial.set('E6', { q: 1, r: -2 });
-    CoordinateMapper.alphanumericToAxial.set('E7', { q: 1, r: -3 });
+    CoordinateMapper.alphanumericToAxial.set('E1', { q: 1, r: 2 });
+    CoordinateMapper.alphanumericToAxial.set('E2', { q: 1, r: 1 });
+    CoordinateMapper.alphanumericToAxial.set('E3', { q: 1, r: 0 });
+    CoordinateMapper.alphanumericToAxial.set('E4', { q: 1, r: -1 });
+    CoordinateMapper.alphanumericToAxial.set('E5', { q: 1, r: -2 });
+    CoordinateMapper.alphanumericToAxial.set('E6', { q: 1, r: -3 });
 
     // Column F (q=2): 5 cells at rows 1, 2, 3, 4, 5
-    CoordinateMapper.alphanumericToAxial.set('F1', { q: 2, r: 3 });
-    CoordinateMapper.alphanumericToAxial.set('F2', { q: 2, r: 2 });
-    CoordinateMapper.alphanumericToAxial.set('F3', { q: 2, r: 1 });
-    CoordinateMapper.alphanumericToAxial.set('F4', { q: 2, r: 0 });
-    CoordinateMapper.alphanumericToAxial.set('F5', { q: 2, r: -1 });
-    CoordinateMapper.alphanumericToAxial.set('F7', { q: 2, r: -3 });
+    CoordinateMapper.alphanumericToAxial.set('F1', { q: 2, r: 1 });
+    CoordinateMapper.alphanumericToAxial.set('F2', { q: 2, r: 0 });
+    CoordinateMapper.alphanumericToAxial.set('F3', { q: 2, r: -1 });
+    CoordinateMapper.alphanumericToAxial.set('F4', { q: 2, r: -2 });
+    CoordinateMapper.alphanumericToAxial.set('F5', { q: 2, r: -3 });
 
     // Column G (q=3): 4 cells at rows 1, 2, 3, 4
-    CoordinateMapper.alphanumericToAxial.set('G1', { q: 3, r: 3 });
-    CoordinateMapper.alphanumericToAxial.set('G2', { q: 3, r: 2 });
-    CoordinateMapper.alphanumericToAxial.set('G3', { q: 3, r: 1 });
-    CoordinateMapper.alphanumericToAxial.set('G4', { q: 3, r: 0 });
+    CoordinateMapper.alphanumericToAxial.set('G1', { q: 3, r: 0 });
+    CoordinateMapper.alphanumericToAxial.set('G2', { q: 3, r: -1 });
+    CoordinateMapper.alphanumericToAxial.set('G3', { q: 3, r: -2 });
+    CoordinateMapper.alphanumericToAxial.set('G4', { q: 3, r: -3 });
+
 
     // Create reverse mapping
     for (const [alphanumeric, axial] of CoordinateMapper.alphanumericToAxial.entries()) {

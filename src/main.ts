@@ -29,6 +29,10 @@ function main() {
   if (!victoryMessage) {
     throw new Error('Victory message not found');
   }
+  const victoryMoveset = document.getElementById('victoryMoveset');
+  if (!victoryMoveset) {
+    throw new Error('Victory moveset holder not found');
+  }
 
   const startOverBtn = document.getElementById('startOverBtn') as HTMLButtonElement;
   if (!startOverBtn) {
@@ -60,10 +64,22 @@ function main() {
     throw new Error('Reset board button not found');
   }
 
+  const undoBtn = document.getElementById('undoBtn') as HTMLButtonElement;
+  if (!undoBtn) {
+    throw new Error('Reset board button not found');
+  }
+
   const debugBtn = document.getElementById('debugBtn') as HTMLButtonElement;
   if (!debugBtn) {
     throw new Error('Debug button not found');
   }
+
+  const moveHistoryDiv = document.getElementById('moveHistory') as HTMLButtonElement;
+  if (!moveHistoryDiv) {
+    throw new Error('Move history div not found');
+  }
+
+
 
   let debugView = false;
 
@@ -90,10 +106,17 @@ function main() {
     render();
   });
 
+  undoBtn.addEventListener('click', () => {
+    game.undoLastAction();
+    render();
+  })
+
   debugBtn.addEventListener('click', () => {
     debugView = !debugView;
     debugBtn.classList.toggle('active', debugView);
     debugBtn.textContent = debugView ? 'Debug (on)' : 'Debug';
+    debugView ? moveHistoryDiv.classList.remove('hidden') : moveHistoryDiv.classList.add('hidden')
+    moveHistoryDiv.textContent = game.getTurnHistory() + "\n" + game.getTurnMoves()
     render();
   });
 
@@ -137,6 +160,9 @@ function main() {
       toggleTargetsBtn.textContent = isMoveMode
         ? (isJailed ? 'Jailed!' : 'Show Ability Targets')
         : 'Show Move Targets';
+      if (game.getActionMode() === 'forced') {
+        toggleTargetsBtn.textContent = 'Must move currently selected piece.';
+      }
       toggleTargetsBtn.classList.toggle('mode-move', isMoveMode);
       toggleTargetsBtn.classList.toggle('mode-ability', !isMoveMode);
     } else {
@@ -147,8 +173,9 @@ function main() {
     
     if (game.gameOver && game.winner) {
       const winnerText = game.winner === PlayerColor.White ? 'White' : 'Black';
-      if (victoryMessage) {
+      if (victoryMessage && victoryMoveset) {
         victoryMessage.textContent = `${winnerText} Wins!`;
+        victoryMoveset.textContent = `${game.getTurnMoves()}`
       }
       if (victoryOverlay) {
         victoryOverlay.classList.remove('hidden');

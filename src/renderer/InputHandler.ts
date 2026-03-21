@@ -91,6 +91,11 @@ export class InputHandler {
       }
     }
 
+    // Do not allow alternate piece selection if in forced mode
+    if (this.game.getActionMode() === 'forced') {
+      return
+    }
+
     // Start selection, or clear selection if clicking empty / wrong piece
     const selected = this.game.selectPiece(coord);
     if (selected) {
