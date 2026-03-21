@@ -16,8 +16,10 @@ export class RoyalGuard extends Piece {
   }
 
   *getValidAbilityTargets(board: Board): AbilityTargetsGenerator {
-    const alliedPieces = board.getPiecesByColor(this.color);
-    const alliedLeader = alliedPieces.filter(p => p.isLeader)[0];
+    const alliedLeader = board.getAlliedLeader(this.color);
+    if (!alliedLeader) {
+      return [];
+    }
     const validTeleportTargets = board.getNeighbors(alliedLeader.position).filter(coord => !board.isOccupied(coord));
     const teleportSpace = yield validTeleportTargets;
     if (teleportSpace === undefined) {
